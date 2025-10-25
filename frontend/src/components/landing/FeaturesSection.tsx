@@ -1,11 +1,11 @@
-import { Eye, Zap, Search } from "lucide-react";
-import { landingPage } from "~/constants";
+import { Eye, Search, Zap } from 'lucide-react'
+import { landingPage } from '~/constants'
 
 interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  colorClass: string;
+  icon: React.ReactNode
+  title: string
+  description: string
+  colorClass: string
 }
 
 function FeatureCard({
@@ -15,43 +15,59 @@ function FeatureCard({
   colorClass,
 }: FeatureCardProps) {
   return (
-    <div className="bg-card border-3 border-foreground/80 rounded-2xl p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-x-[4px] hover:translate-y-[4px] transition-all group">
-      <div
-        className={`w-20 h-20 ${colorClass} border-3 border-foreground/80 flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform text-white shadow-md`}
-      >
-        {icon}
+    <div className="relative group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+      <div className="relative glass-strong rounded-3xl p-8 border border-white/5 hover:border-white/10 transition-all duration-300 group-hover:scale-[1.02]">
+        <div
+          className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 ${colorClass === 'bg-primary' ? 'bg-primary/20 border border-primary/30 glow-cyan' : colorClass === 'bg-secondary' ? 'bg-secondary/20 border border-secondary/30 glow-magenta' : 'bg-white/5 border border-white/10'}`}
+        >
+          <div
+            className={
+              colorClass === 'bg-primary'
+                ? 'text-primary'
+                : colorClass === 'bg-secondary'
+                  ? 'text-secondary'
+                  : 'text-muted-foreground'
+            }
+          >
+            {icon}
+          </div>
+        </div>
+        <h3 className="text-2xl font-bold mb-4 text-foreground">{title}</h3>
+        <p className="text-muted-foreground leading-relaxed font-light">
+          {description}
+        </p>
       </div>
-      <h3 className="text-2xl font-black mb-4 text-foreground">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed font-medium">
-        {description}
-      </p>
     </div>
-  );
+  )
 }
 
 const iconMap = {
   Eye,
   Zap,
   Search,
-};
+}
 
 export function FeaturesSection() {
-  const { features } = landingPage;
+  const { features } = landingPage
 
   return (
-    <div className="bg-stone-muted-50 py-24 border-y-4 border-foreground/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="relative py-32 overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px]" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 max-w-3xl mx-auto">
-          <div className="inline-block bg-card border-2 border-foreground/80 px-6 py-3 rotate-[-0.5deg] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.8)] mb-8">
-            <h2 className="text-5xl md:text-6xl font-black text-foreground">
-              {features.title}{" "}
-              <span className="text-primary">{features.titleAccent}</span>{" "}
-              {features.titleSuffix}
-            </h2>
-          </div>
-          <p className="text-2xl text-muted-foreground font-light">
-            {features.subtitle}{" "}
-            <span className="font-bold text-primary underline decoration-4 decoration-sky-accent-200 underline-offset-4">
+          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+            {features.title}{' '}
+            <span className="text-primary text-glow-cyan">
+              {features.titleAccent}
+            </span>{' '}
+            {features.titleSuffix}
+          </h2>
+          <p className="text-xl text-muted-foreground font-light">
+            {features.subtitle}{' '}
+            <span className="font-semibold text-primary">
               {features.subtitleHighlight}
             </span>
           </p>
@@ -59,8 +75,8 @@ export function FeaturesSection() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {features.cards.map((card, index) => {
-            const Icon = iconMap[card.icon as keyof typeof iconMap];
-            const colors = ["bg-primary", "bg-secondary", "bg-stone-muted"];
+            const Icon = iconMap[card.icon]
+            const colors = ['bg-primary', 'bg-secondary', 'bg-muted']
             return (
               <FeatureCard
                 key={card.title}
@@ -69,11 +85,10 @@ export function FeaturesSection() {
                 description={card.description}
                 colorClass={colors[index]}
               />
-            );
+            )
           })}
         </div>
       </div>
     </div>
-  );
+  )
 }
-

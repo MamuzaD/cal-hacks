@@ -1,34 +1,34 @@
-import { Button } from "~/components/ui/button";
-import { Search } from "lucide-react";
-import { brand, landingPage } from "~/constants";
-import { NetworkPreview } from "./NetworkPreview";
+import { Search } from 'lucide-react'
+import { NetworkPreview } from './NetworkPreview'
+import { Button } from '~/components/ui/button'
+import { brand, landingPage } from '~/constants'
 
 export function HeroSection() {
-  const { hero } = landingPage;
+  const { hero } = landingPage
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12">
-      <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-12 pt-16">
+      <div className="space-y-8">
         <div className="inline-block">
-          <div className="bg-purple-accent-100 text-secondary px-4 py-2 -rotate-1 shadow-sm border-l-4 border-secondary font-medium">
-            {brand.tagline}
+          <div className="glass px-6 py-2 rounded-full text-sm font-medium text-muted-foreground border border-primary/20 glow-cyan">
+            <span className="text-primary">●</span> {brand.tagline}
           </div>
         </div>
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight text-foreground leading-[0.95]">
-          {hero.title.line1}
-          <br />
-          <span className="relative inline-block">
-            <span className="relative z-10">{hero.title.line2}</span>
-            <div className="absolute bottom-2 left-0 w-full h-4 bg-sky-accent-200 -rotate-1 z-0" />
+        <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-[1.1]">
+          <span className="block text-foreground">{hero.title.line1}</span>
+          <span className="block text-foreground">{hero.title.line2}</span>
+          <span
+            className="block bg-gradient-to-r from-[#479ce6] via-[#887be3] to-[#479ce6] bg-clip-text text-transparent text-glow-cyan animate-shimmer"
+            style={{ backgroundSize: '200% auto' }}
+          >
+            {hero.title.line3}
           </span>
-          <br />
-          <span className="text-primary">{hero.title.line3}</span>
         </h1>
       </div>
 
-      <p className="text-2xl md:text-3xl text-muted-foreground max-w-3xl font-light leading-relaxed">
-        {hero.subtitle}{" "}
-        <span className="font-semibold text-primary border-b-2 border-sky-accent-200">
+      <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl font-light leading-relaxed">
+        {hero.subtitle}{' '}
+        <span className="font-semibold text-primary">
           {hero.subtitleHighlight}
         </span>
         .
@@ -36,32 +36,33 @@ export function HeroSection() {
 
       {/* Search Demo */}
       <div className="max-w-2xl mt-16">
-        <div className="relative transform hover:scale-[1.02] transition-transform">
-          <div className="absolute -inset-1 bg-linear-to-r from-primary/30 to-secondary/30 rounded-2xl opacity-20 blur" />
-          <div className="relative flex items-center bg-card border-3 border-foreground/80 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.8)] rounded-xl px-6 py-5">
-            <Search className="w-6 h-6 text-primary mr-3" />
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#479ce6] to-[#887be3] rounded-2xl opacity-20 blur-xl group-hover:opacity-40 transition-opacity" />
+          <div className="relative flex items-center glass-strong rounded-2xl px-6 py-5 border border-white/10 hover:border-primary/30 transition-all">
+            <Search className="w-6 h-6 text-primary mr-3 animate-pulse-glow" />
             <input
               type="text"
               placeholder={hero.searchPlaceholder}
-              className="flex-1 bg-transparent text-foreground placeholder-muted-foreground outline-none text-lg font-medium"
+              className="flex-1 bg-transparent text-foreground placeholder-muted-foreground outline-none text-lg font-light"
             />
-            <Button className="ml-4 border-2 border-foreground/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+            <Button className="ml-4 bg-primary hover:bg-primary/90 text-background font-semibold glow-hover-cyan transition-all">
               {hero.searchButton}
             </Button>
           </div>
 
           {/* Example tags */}
           <div className="flex items-center justify-start gap-3 mt-6 flex-wrap">
-            <span className="text-sm text-muted-foreground font-semibold">
+            <span className="text-sm text-muted-foreground font-medium">
               {hero.quickStartLabel}
             </span>
-            {hero.exampleSearches.map((example: string) => (
-              <Button
+            {hero.exampleSearches.map((example: string, index: number) => (
+              <button
                 key={example}
-                className="px-4 py-2 bg-card hover:bg-stone-muted-50 border-2 border-foreground/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] hover:translate-x-[2px] hover:translate-y-[2px] text-sm font-semibold text-foreground transition-all"
+                className="px-4 py-2 glass rounded-xl text-sm font-medium text-foreground hover:text-primary border border-white/5 hover:border-primary/30 transition-all hover:scale-105 glow-hover-cyan"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 {example}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
@@ -70,5 +71,5 @@ export function HeroSection() {
       {/* Network Visualization Preview */}
       <NetworkPreview />
     </div>
-  );
+  )
 }
