@@ -20,6 +20,7 @@ interface Link extends d3.SimulationLinkDatum<Node> {
 export function NetworkPreview() {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const { hero } = landingPage
 
@@ -359,6 +360,7 @@ export function NetworkPreview() {
       })
 
     svg.call(zoom)
+    zoomRef.current = zoom
 
     // Handle window resize
     const handleResize = () => {
@@ -377,6 +379,16 @@ export function NetworkPreview() {
     }
   }, [selectedNode])
 
+  const resetZoom = () => {
+    if (svgRef.current && zoomRef.current) {
+      const svg = d3.select(svgRef.current)
+      svg.transition().duration(750).call(
+        zoomRef.current.transform,
+        d3.zoomIdentity
+      )
+    }
+  }
+
   return (
     <div className="mt-20 relative">
       <style>{`
@@ -393,11 +405,32 @@ export function NetworkPreview() {
       `}</style>
       <div className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl opacity-50 blur-xl group-hover:opacity-70 transition-opacity" />
-        <div className="relative glass-strong border border-white/10 rounded-3xl p-6 overflow-hidden">
+        <div className="relative glass-strong border border-black/10 dark:border-white/10 rounded-3xl p-6 overflow-hidden">
           <div className="absolute top-6 left-6 glass px-4 py-2 rounded-lg text-xs font-semibold text-primary border border-primary/30 z-10 glow-cyan">
             <span className="inline-block w-2 h-2 bg-primary rounded-full mr-2 animate-pulse-glow" />
             {hero.previewLabel}
           </div>
+          <button
+            onClick={resetZoom}
+            className="absolute top-6 right-6 glass px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground border border-white/10 hover:border-white/20 z-10 transition-all duration-200 hover:scale-105"
+            title="Reset zoom and position"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M3 21v-5h5" />
+            </svg>
+          </button>
           <div className="relative">
             <svg
               ref={svgRef}
@@ -432,6 +465,11 @@ export function NetworkPreview() {
               <span className="flex items-center gap-2">
                 <span className="inline-block w-2 h-2 bg-[#7681a3] rounded-full animate-pulse-glow" />
                 Scroll to zoom
+              </span>
+              <span className="opacity-50">•</span>
+              <span className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse-glow" />
+                Reset view
               </span>
             </div>
           </div>

@@ -53,6 +53,13 @@ export function FeaturesSection() {
 
   return (
     <div className="relative py-32 overflow-hidden">
+      {/* Gradient background that blends with hero section */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+      
+      {/* Subtle animated orbs for continuity */}
+      <div className="absolute top-0 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/8 blur-[120px] animate-float" />
+      <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full bg-secondary/6 blur-[100px] animate-float" style={{ animationDelay: '1.5s' }} />
+      
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px]" />
 

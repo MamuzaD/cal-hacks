@@ -5,79 +5,77 @@ export const landingPage = {
       line2: 'the Dots',
       line3: 'Instantly',
     },
-    subtitle:
-      'An AI map of connections between people, organizations, and actions — so you can see',
-    subtitleHighlight: "who's connected to what",
-    searchPlaceholder: "Type 'Pfizer', 'Tesla', or any organization...",
-    searchButton: 'Explore',
     quickStartLabel: 'Quick start →',
+    previewLabel: "DEMO PREVIEW",
+    subtitle:
+      'An AI map of connections between companies and politicians—follow the money, see who lobbies whom, and where stock holdings may align with policy.',
+    subtitleHighlight: 'funding, lobbying, and holdings',
+    searchPlaceholder:
+      "Try 'Pfizer', 'Tesla', 'BlackRock', or a politician's name…",
+    searchButton: 'Explore',
     exampleSearches: ['Pfizer', 'Tesla', 'OpenAI', 'JPMorgan'],
-    previewLabel: 'LIVE PREVIEW',
-    previewDescription: 'Real-time connections from verified data sources',
     connectionNodes: [
-      { label: '15 Lawmakers', icon: 'Users' },
-      { label: '28 Bills', icon: 'FileText' },
-      { label: '8 Lobbyists', icon: 'Building2' },
-      { label: '12 Universities', icon: 'TrendingUp' },
+      { label: 'Lawmakers', icon: 'Users' },
+      { label: 'Bills & Votes', icon: 'FileText' },
+      { label: 'Lobbying Filings', icon: 'Building2' },
+      { label: 'Stock Holdings', icon: 'TrendingUp' },
     ],
   },
   features: {
-    title: 'Wikipedia',
-    titleAccent: '+',
-    titleSuffix: 'Conspiracy Map',
-    subtitle: 'But with',
-    subtitleHighlight: 'Real Data',
+    title: 'See the Network',
+    subtitle: 'Built on',
+    subtitleHighlight: 'verifiable filings and disclosures',
     cards: [
       {
         title: 'Visual Clarity',
         description:
-          'Turn complex relationships into interactive, intuitive graphs. See the full picture at a glance.',
+          'Turn campaign finance, lobbying reports, bill sponsorships, and trades into an intuitive graph.',
         icon: 'Eye',
       },
       {
         title: 'AI-Powered',
         description:
-          "Our AI automatically discovers and maps connections you'd never find manually. Instant insights.",
+          'Entity resolution links companies, PACs, politicians, committees, and bills to surface non-obvious ties.',
         icon: 'Zap',
       },
       {
-        title: 'Deep Discovery',
+        title: 'Source-Backed',
         description:
-          'Explore connections between people, organizations, bills, and actions. Perfect for journalists and researchers.',
+          'Every edge links back to verified sources like FEC reports, LDA filings, and financial disclosures.',
         icon: 'Search',
       },
     ],
   },
   useCases: {
-    title: "Who It's For",
+    title: 'Who It’s For',
     cards: [
       {
         title: 'Journalists',
         description:
-          'Uncover hidden connections for investigative reporting. Follow the money, track influence.',
+          'Trace influence: connect donors, lobbyists, votes, and personal holdings in minutes.',
         icon: 'FileText',
       },
       {
-        title: 'Students',
+        title: 'Researchers & Students',
         description:
-          'Research complex topics visually. Understand how organizations and people interrelate.',
+          'Study corporate–government relationships with transparent, cited data.',
         icon: 'Users',
       },
       {
-        title: 'Curious Minds',
+        title: 'Civic Watchdogs',
         description:
-          'Satisfy your curiosity about how the world really works. Discover surprising connections.',
+          'Monitor potential conflicts of interest and spotlight patterns as they emerge.',
         icon: 'Eye',
       },
     ],
   },
   cta: {
     title: {
-      line1: 'Start Connecting',
-      line2: 'the Dots',
+      line1: 'Follow the Money,',
+      line2: 'See the Influence',
     },
     subtitle:
-      'Join thousands discovering hidden connections and gaining insights into how the world works.',
+      'Explore the connections between companies and politicians—funding, lobbying, and stock holdings—in one interactive map.',
     primaryButton: 'Get Started Free',
     secondaryButton: 'Watch Demo',
   },

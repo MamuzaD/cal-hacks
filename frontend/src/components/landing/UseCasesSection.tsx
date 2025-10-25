@@ -61,9 +61,12 @@ export function UseCasesSection() {
 
   return (
     <div className="relative py-32 overflow-hidden">
+      {/* Gradient background for seamless flow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
+      
       {/* Background elements */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-[100px]" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px]" />
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-secondary/8 blur-[120px] animate-float" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-primary/6 blur-[140px] animate-float" style={{ animationDelay: '2s' }} />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
