@@ -6,7 +6,6 @@ export function CTASection() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-
       {/* Animated radial gradient background */}
       <div
         aria-hidden="true"
@@ -19,12 +18,6 @@ export function CTASection() {
           <div className="absolute inset-0 w-[70vw] h-[45vw] max-w-[900px] max-h-[500px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent/15 via-primary/5 to-transparent opacity-60 blur-3xl animate-float animation-delay-1s" />
         </div>
       </div>
-
-      {/* Subtle grid pattern overlay */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-100 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"
-      />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative group">

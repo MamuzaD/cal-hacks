@@ -37,9 +37,6 @@ export function HeroSection() {
         buttonText={hero.searchButton}
         variant="hero"
       />
-
-      {/* Network Visualization Preview */}
-      {/* <NetworkPreview /> */}
     </div>
   )
 }
