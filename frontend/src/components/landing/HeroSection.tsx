@@ -1,17 +1,17 @@
 import { Button } from "~/components/ui/button";
 import { Search } from "lucide-react";
-import { BRAND, LANDING_PAGE } from "~/constants";
+import { brand, landingPage } from "~/constants";
 import { NetworkPreview } from "./NetworkPreview";
 
 export function HeroSection() {
-  const { hero } = LANDING_PAGE;
+  const { hero } = landingPage;
 
   return (
     <div className="max-w-5xl mx-auto space-y-12">
       <div className="space-y-6">
         <div className="inline-block">
           <div className="bg-purple-accent-100 text-secondary px-4 py-2 -rotate-1 shadow-sm border-l-4 border-secondary font-medium">
-            {BRAND.tagline}
+            {brand.tagline}
           </div>
         </div>
         <h1 className="text-6xl md:text-8xl font-black tracking-tight text-foreground leading-[0.95]">
@@ -55,7 +55,7 @@ export function HeroSection() {
             <span className="text-sm text-muted-foreground font-semibold">
               {hero.quickStartLabel}
             </span>
-            {hero.exampleSearches.map((example) => (
+            {hero.exampleSearches.map((example: string) => (
               <Button
                 key={example}
                 className="px-4 py-2 bg-card hover:bg-stone-muted-50 border-2 border-foreground/80 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] hover:translate-x-[2px] hover:translate-y-[2px] text-sm font-semibold text-foreground transition-all"

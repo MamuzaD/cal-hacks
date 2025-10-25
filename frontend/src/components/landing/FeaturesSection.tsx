@@ -1,5 +1,5 @@
 import { Eye, Zap, Search } from "lucide-react";
-import { LANDING_PAGE } from "~/constants";
+import { landingPage } from "~/constants";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -36,7 +36,7 @@ const iconMap = {
 };
 
 export function FeaturesSection() {
-  const { features } = LANDING_PAGE;
+  const { features } = landingPage;
 
   return (
     <div className="bg-stone-muted-50 py-24 border-y-4 border-foreground/80">

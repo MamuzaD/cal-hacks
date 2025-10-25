@@ -1,8 +1,8 @@
 import { Button } from "~/components/ui/button";
-import { LANDING_PAGE } from "~/constants";
+import { landingPage } from "~/constants";
 
 export function CTASection() {
-  const { cta } = LANDING_PAGE;
+  const { cta } = landingPage;
 
   return (
     <div className="bg-stone-muted-50 py-24 border-t-4 border-foreground/80">

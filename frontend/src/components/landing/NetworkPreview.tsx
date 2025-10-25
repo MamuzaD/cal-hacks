@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { LANDING_PAGE } from "~/constants";
+import { landingPage } from "~/constants";
 
 interface Node extends d3.SimulationNodeDatum {
   id: string;
@@ -21,7 +21,7 @@ export function NetworkPreview() {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const { hero } = LANDING_PAGE;
+  const { hero } = landingPage;
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -358,7 +358,7 @@ export function NetworkPreview() {
         }
       `}</style>
       <div className="bg-card border-3 border-foreground/80 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.8)] rounded-2xl p-6 rotate-[0.5deg] overflow-hidden hover:rotate-0 transition-transform duration-300">
-        <div className="absolute -top-4 left-10 bg-sky-accent text-white px-4 py-1 -rotate-2 shadow-md border-2 border-foreground/80 font-bold text-sm z-10">
+        <div className="absolute top-4 left-10 bg-sky-accent text-white px-4 py-1 -rotate-2 shadow-md border-2 border-foreground/80 font-bold text-sm z-10">
           {hero.previewLabel}
         </div>
         <div className="relative">

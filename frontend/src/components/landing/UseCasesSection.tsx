@@ -1,5 +1,5 @@
 import { FileText, Users, Eye } from "lucide-react";
-import { LANDING_PAGE } from "~/constants";
+import { landingPage } from "~/constants";
 
 interface UseCaseCardProps {
   title: string;
@@ -36,7 +36,7 @@ const iconMap = {
 };
 
 export function UseCasesSection() {
-  const { useCases } = LANDING_PAGE;
+  const { useCases } = landingPage;
 
   return (
     <div className="bg-background py-24">

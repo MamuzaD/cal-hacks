@@ -1,4 +1,4 @@
-export const LANDING_PAGE = {
+export const landingPage = {
   hero: {
     title: {
       line1: "Connect",

@@ -1,5 +1,5 @@
 import { Network } from "lucide-react";
-import { BRAND } from "~/constants";
+import { brand } from "~/constants";
 
 export function Footer() {
   return (
@@ -11,10 +11,10 @@ export function Footer() {
               <div className="w-8 h-8 bg-primary rotate-45 rounded-sm" />
               <Network className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">{BRAND.name}</span>
+            <span className="text-xl font-bold text-white">{brand.name}</span>
           </div>
           <div className="text-stone-400 text-sm font-medium">
-            {BRAND.copyright}
+            {brand.copyright}
           </div>
         </div>
       </div>
