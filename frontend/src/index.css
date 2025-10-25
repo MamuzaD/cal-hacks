@@ -16,24 +16,29 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
+  
+  /* Custom Reframe Color Palette */
+  --slate-muted: 118 129 163; /* #7681a3 - Primary slate blue */
+  --sky-accent: 71 156 230; /* #479ce6 - Bright blue accent */
+  --purple-accent: 136 123 227; /* #887be3 - Purple/lavender accent */
+  --background: oklch(0.98 0.005 264);
+  --foreground: oklch(0.2 0.02 264);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.147 0.004 49.25);
+  --card-foreground: oklch(0.2 0.02 264);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.216 0.006 56.043);
-  --primary-foreground: oklch(0.985 0.001 106.423);
-  --secondary: oklch(0.97 0.001 106.424);
-  --secondary-foreground: oklch(0.216 0.006 56.043);
-  --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: oklch(0.97 0.001 106.424);
-  --accent-foreground: oklch(0.216 0.006 56.043);
+  --popover-foreground: oklch(0.2 0.02 264);
+  --primary: oklch(0.6 0.12 264); /* Sky accent */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.58 0.12 285); /* Purple accent */
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.56 0.04 258); /* Slate muted */
+  --muted-foreground: oklch(0.45 0.04 258);
+  --accent: oklch(0.58 0.12 285); /* Purple accent */
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
-  --input: oklch(0.923 0.003 48.717);
-  --ring: oklch(0.709 0.01 56.259);
+  --border: oklch(0.88 0.01 264);
+  --input: oklch(0.88 0.01 264);
+  --ring: oklch(0.6 0.12 264);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -60,8 +65,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -139,6 +142,23 @@ button:focus-visible {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Custom Reframe colors */
+  --color-slate-muted: rgb(var(--slate-muted));
+  --color-slate-muted-50: rgb(var(--slate-muted) / 0.05);
+  --color-slate-muted-100: rgb(var(--slate-muted) / 0.1);
+  --color-slate-muted-200: rgb(var(--slate-muted) / 0.2);
+  --color-slate-muted-500: rgb(var(--slate-muted) / 0.5);
+  --color-sky-accent: rgb(var(--sky-accent));
+  --color-sky-accent-50: rgb(var(--sky-accent) / 0.05);
+  --color-sky-accent-100: rgb(var(--sky-accent) / 0.1);
+  --color-sky-accent-200: rgb(var(--sky-accent) / 0.2);
+  --color-sky-accent-500: rgb(var(--sky-accent) / 0.5);
+  --color-purple-accent: rgb(var(--purple-accent));
+  --color-purple-accent-50: rgb(var(--purple-accent) / 0.05);
+  --color-purple-accent-100: rgb(var(--purple-accent) / 0.1);
+  --color-purple-accent-200: rgb(var(--purple-accent) / 0.2);
+  --color-purple-accent-500: rgb(var(--purple-accent) / 0.5);
 }
 
 .dark {
