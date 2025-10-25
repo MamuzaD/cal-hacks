@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -11,7 +11,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  
+
   /* Your custom brand colors */
   --primary: oklch(0.68 0.12 264.376); /* Pastel Blue */
   --primary-foreground: oklch(0.985 0 0);
@@ -19,7 +19,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --accent: oklch(0.65 0.14 303.9); /* Pastel Purple */
   --accent-foreground: oklch(0.985 0 0);
-  
+
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -27,16 +27,16 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.68 0.12 264.376); /* Match primary for focus rings */
-  
+
   /* Chart colors using your palette */
   --chart-1: oklch(0.68 0.12 264.376); /* Pastel blue */
   --chart-2: oklch(0.488 0.243 264.376); /* Secondary blue-gray */
   --chart-3: oklch(0.65 0.14 303.9); /* Pastel purple */
   --chart-4: oklch(0.769 0.188 70.08);
   --chart-5: oklch(0.645 0.246 16.439);
-  
+
   --radius: 0.625rem;
-  
+
   /* Sidebar colors */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -55,7 +55,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  
+
   /* Your custom brand colors for dark mode */
   --primary: oklch(0.68 0.12 264.376); /* Pastel Blue */
   --primary-foreground: oklch(0.145 0 0);
@@ -63,7 +63,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --accent: oklch(0.65 0.14 303.9); /* Pastel Purple */
   --accent-foreground: oklch(0.985 0 0);
-  
+
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --destructive: oklch(0.396 0.141 25.723);
@@ -71,14 +71,14 @@
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
   --ring: oklch(0.68 0.12 264.376); /* Match primary for focus rings */
-  
+
   /* Chart colors for dark mode */
   --chart-1: oklch(0.68 0.12 264.376); /* Pastel blue */
   --chart-2: oklch(0.488 0.243 264.376); /* Secondary blue-gray */
   --chart-3: oklch(0.65 0.14 303.9); /* Pastel purple */
   --chart-4: oklch(0.769 0.188 70.08);
   --chart-5: oklch(0.645 0.246 16.439);
-  
+
   /* Sidebar colors for dark mode */
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
@@ -143,43 +143,43 @@
   .glass {
     @apply bg-white/5 backdrop-blur-md border border-white/10;
   }
-  
+
   .glass-strong {
     @apply bg-white/10 backdrop-blur-lg border border-white/20;
   }
-  
+
   /* Glow Effects */
   .glow-cyan {
     @apply shadow-[0_0_20px_rgba(120,180,220,0.25)];
   }
-  
+
   .glow-magenta {
     @apply shadow-[0_0_20px_rgba(160,140,200,0.25)];
   }
-  
+
   .glow-hover-cyan:hover {
     @apply shadow-[0_0_25px_rgba(120,180,220,0.35)];
   }
-  
+
   .glow-hover-magenta:hover {
     @apply shadow-[0_0_25px_rgba(160,140,200,0.35)];
   }
-  
+
   .text-glow-cyan {
     @apply drop-shadow-[0_0_8px_rgba(120,180,220,0.4)];
   }
-  
+
   /* Custom Animations */
   .animate-shimmer {
     animation: shimmer 5s linear infinite;
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
-  
+
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float 3s linear infinite;
   }
 }
 
@@ -193,7 +193,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -204,7 +205,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {

@@ -6,8 +6,6 @@ export function CTASection() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* Enhanced gradient background with multiple layers */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
 
       {/* Animated radial gradient background */}
       <div
@@ -25,7 +23,7 @@ export function CTASection() {
       {/* Subtle grid pattern overlay */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"
+        className="absolute inset-0 opacity-100 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"
       />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

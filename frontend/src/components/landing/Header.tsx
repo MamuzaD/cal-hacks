@@ -1,9 +1,9 @@
 import { Network } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Button } from '~/components/ui/button'
 import { brand, landingPage } from '~/constants'
-import { SearchBar } from '~/components/ui/SearchBar'
+import { SearchBar } from '~/components/ui/search'
 import { ThemeToggle } from '~/components/ui/theme-toggle'
-import { Link } from '@tanstack/react-router'
 
 export function Header() {
   return (

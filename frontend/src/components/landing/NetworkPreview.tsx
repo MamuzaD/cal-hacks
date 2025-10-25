@@ -382,10 +382,10 @@ export function NetworkPreview() {
   const resetZoom = () => {
     if (svgRef.current && zoomRef.current) {
       const svg = d3.select(svgRef.current)
-      svg.transition().duration(750).call(
-        zoomRef.current.transform,
-        d3.zoomIdentity
-      )
+      svg
+        .transition()
+        .duration(750)
+        .call(zoomRef.current.transform, d3.zoomIdentity)
     }
   }
 
