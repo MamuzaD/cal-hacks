@@ -1,5 +1,7 @@
 from typing import Union, List, Optional
 from fastapi import FastAPI, Query, HTTPException, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from datetime import date
 import asyncpg
@@ -353,3 +355,49 @@ async def person_search(
     Returns all companies they have ownership stakes in.
     """
     return await search_person_in_db(q, db)
+
+# Mount static files from the frontend build directory
+# This serves the React app's static assets (JS, CSS, images, etc.)
+# Get the project root (two levels up from backend/src/main.py)
+_current_dir = os.path.dirname(__file__)
+_backend_dir = os.path.dirname(_current_dir)
+_project_root = os.path.dirname(_backend_dir)
+frontend_dist = os.path.join(_project_root, "frontend", "dist")
+
+# Only mount static files if the dist directory exists
+if os.path.exists(frontend_dist):
+    logger.info(f"Serving frontend from: {frontend_dist}")
+    
+    # Serve all static files from the dist directory
+    # This includes: index.html, favicon.ico, robots.txt, assets/, etc.
+    try:
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="static-assets")
+        logger.info("Mounted /assets directory")
+    except Exception as e:
+        logger.warning(f"Could not mount /assets: {e}")
+    
+    # Catch-all route: serve the React app's index.html for client-side routing
+    # This must be last to not override API routes.
+    # FastAPI will only call this if no earlier route matches.
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """
+        Catch-all route to serve the React app for client-side routing.
+        This only matches if no API route (like /search) has matched.
+        """
+        # Check if it's a static file request (has file extension)
+        if "." in os.path.basename(full_path):
+            # Try to serve the actual file (like favicon.ico, robots.txt, etc.)
+            file_path = os.path.join(frontend_dist, full_path)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+        
+        # For all other paths, serve index.html for SPA routing
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        
+        # Fallback to 404 if index.html doesn't exist
+        raise HTTPException(status_code=404, detail="Not found")
+else:
+    logger.warning(f"Frontend dist directory not found at: {frontend_dist}")

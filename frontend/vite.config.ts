@@ -20,4 +20,9 @@ export default defineConfig({
       '~': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  base: '/', // Use relative paths for Railway deployment
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
 })
