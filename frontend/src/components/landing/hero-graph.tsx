@@ -15,18 +15,36 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   strength: number
 }
 
-export function GraphOverlay() {
+// Node size constants
+const PRIMARY_SIZE = 36
+const SECONDARY_SIZE = 25
+const TERTIARY_SIZE = 20
+
+export function HeroGraph() {
   const svgRef = useRef<SVGSVGElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [shouldRender, setShouldRender] = useState(false)
+
+  // Check if we should render based on screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setShouldRender(window.innerWidth >= 768) // md breakpoint is 768px
+    }
+    
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
 
   useEffect(() => {
-    if (!svgRef.current) return
+    if (!svgRef.current || !shouldRender) return
 
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const width = 600
-    const height = 600
+    const width = 500
+    const height = 400
     const centerX = width / 2
     const centerY = height / 2
 
@@ -36,92 +54,91 @@ export function GraphOverlay() {
         id: 'center',
         label: 'Network',
         type: 'primary',
-        size: 12,
+        size: PRIMARY_SIZE,
         color: '#479ce6',
         x: centerX,
         y: centerY,
-        // Remove fx and fy to allow dragging
       },
       {
         id: 'node1',
         label: 'Politicians',
         type: 'secondary',
-        size: 10,
+        size: SECONDARY_SIZE,
         color: '#887be3',
-        x: centerX + Math.cos(0) * 120,
-        y: centerY + Math.sin(0) * 120,
+        x: centerX + Math.cos(0) * 100,
+        y: centerY + Math.sin(0) * 100,
       },
       {
         id: 'node2',
         label: 'Companies',
         type: 'secondary',
-        size: 10,
+        size: SECONDARY_SIZE,
         color: '#887be3',
-        x: centerX + Math.cos((2 * Math.PI) / 3) * 120,
-        y: centerY + Math.sin((2 * Math.PI) / 3) * 120,
+        x: centerX + Math.cos((2 * Math.PI) / 3) * 100,
+        y: centerY + Math.sin((2 * Math.PI) / 3) * 100,
       },
       {
         id: 'node3',
         label: 'PACs',
         type: 'secondary',
-        size: 10,
+        size: SECONDARY_SIZE,
         color: '#887be3',
-        x: centerX + Math.cos((4 * Math.PI) / 3) * 120,
-        y: centerY + Math.sin((4 * Math.PI) / 3) * 120,
+        x: centerX + Math.cos((4 * Math.PI) / 3) * 100,
+        y: centerY + Math.sin((4 * Math.PI) / 3) * 100,
       },
       {
         id: 'node4',
         label: 'Campaign Finance',
         type: 'tertiary',
-        size: 8,
+        size: TERTIARY_SIZE,
         color: '#7681a3',
-        x: centerX + Math.cos(Math.PI / 4) * 200,
-        y: centerY + Math.sin(Math.PI / 4) * 200,
+        x: centerX + Math.cos(Math.PI / 4) * 160,
+        y: centerY + Math.sin(Math.PI / 4) * 160,
       },
       {
         id: 'node5',
         label: 'Lobbying',
         type: 'tertiary',
-        size: 8,
+        size: TERTIARY_SIZE,
         color: '#7681a3',
-        x: centerX + Math.cos((3 * Math.PI) / 4) * 200,
-        y: centerY + Math.sin((3 * Math.PI) / 4) * 200,
+        x: centerX + Math.cos((3 * Math.PI) / 4) * 160,
+        y: centerY + Math.sin((3 * Math.PI) / 4) * 160,
       },
       {
         id: 'node6',
         label: 'Stock Holdings',
         type: 'tertiary',
-        size: 8,
+        size: TERTIARY_SIZE,
         color: '#7681a3',
-        x: centerX + Math.cos((5 * Math.PI) / 4) * 200,
-        y: centerY + Math.sin((5 * Math.PI) / 4) * 200,
+        x: centerX + Math.cos((5 * Math.PI) / 4) * 160,
+        y: centerY + Math.sin((5 * Math.PI) / 4) * 160,
       },
       {
         id: 'node7',
         label: 'Bills & Votes',
         type: 'tertiary',
-        size: 8,
+        size: TERTIARY_SIZE,
         color: '#7681a3',
-        x: centerX + Math.cos((7 * Math.PI) / 4) * 200,
-        y: centerY + Math.sin((7 * Math.PI) / 4) * 200,
+        x: centerX + Math.cos((7 * Math.PI) / 4) * 160,
+        y: centerY + Math.sin((7 * Math.PI) / 4) * 160,
       },
     ]
 
     // Define links
     const links: Array<GraphLink> = [
-      { source: 'center', target: 'node1', strength: 0.8 }, // Network -> Politicians
-      { source: 'center', target: 'node2', strength: 0.8 }, // Network -> Companies
-      { source: 'center', target: 'node3', strength: 0.8 }, // Network -> PACs
-      { source: 'node1', target: 'node4', strength: 0.7 }, // Politicians -> Campaign Finance
-      { source: 'node1', target: 'node6', strength: 0.6 }, // Politicians -> Stock Holdings
-      { source: 'node1', target: 'node7', strength: 0.7 }, // Politicians -> Bills & Votes
-      { source: 'node2', target: 'node5', strength: 0.7 }, // Companies -> Lobbying
-      { source: 'node2', target: 'node6', strength: 0.6 }, // Companies -> Stock Holdings
-      { source: 'node3', target: 'node4', strength: 0.6 }, // PACs -> Campaign Finance
-      { source: 'node3', target: 'node5', strength: 0.5 }, // PACs -> Lobbying
+      { source: 'center', target: 'node1', strength: 0.8 },
+      { source: 'center', target: 'node2', strength: 0.8 },
+      { source: 'center', target: 'node3', strength: 0.8 },
+      { source: 'node1', target: 'node4', strength: 0.7 },
+      { source: 'node1', target: 'node6', strength: 0.6 },
+      { source: 'node1', target: 'node7', strength: 0.7 },
+      { source: 'node2', target: 'node5', strength: 0.7 },
+      { source: 'node2', target: 'node6', strength: 0.6 },
+      { source: 'node3', target: 'node4', strength: 0.6 },
+      { source: 'node3', target: 'node5', strength: 0.5 },
     ]
 
-    // Create force simulation with radial force for circular layout
+    // Create force simulation
     const simulation = d3
       .forceSimulation(nodes)
       .force(
@@ -129,22 +146,22 @@ export function GraphOverlay() {
         d3
           .forceLink<GraphNode, GraphLink>(links)
           .id((d) => d.id)
-          .distance(100)
-          .strength(0.2),
+          .distance(200)
+          .strength(0.3),
       )
-      .force('charge', d3.forceManyBody().strength(-150))
+      .force('charge', d3.forceManyBody().strength(-120))
       .force(
         'radial',
         d3
           .forceRadial<GraphNode>(
             (d) =>
-              d.type === 'secondary' ? 120 : d.type === 'tertiary' ? 200 : 0,
+              d.type === 'secondary' ? 100 : d.type === 'tertiary' ? 160 : 0,
             centerX,
             centerY,
           )
           .strength(0.8),
       )
-      .force('collision', d3.forceCollide().radius(50))
+      .force('collision', d3.forceCollide().radius(40))
       .alphaDecay(0.02)
 
     // Create container group
@@ -209,11 +226,10 @@ export function GraphOverlay() {
     node
       .append('circle')
       .attr('class', 'node-glow')
-      .attr('r', (d) => d.size + 4)
+      .attr('r', (d) => d.size + 3)
       .attr('fill', (d) => d.color)
       .attr('opacity', 0)
       .style('filter', (d) => `blur(8px) drop-shadow(0 0 12px ${d.color})`)
-      .style('transition', 'all 0.3s ease')
 
     // Add main node circle
     node
@@ -222,9 +238,9 @@ export function GraphOverlay() {
       .attr('r', (d) => d.size)
       .attr('fill', (d) => {
         const colors = {
-          '#479ce6': 'rgba(71, 156, 230, 0.2)', // Network - Blue
-          '#887be3': 'rgba(136, 123, 227, 0.2)', // Main entities - Purple
-          '#7681a3': 'rgba(118, 129, 163, 0.2)', // Data types - Gray
+          '#479ce6': 'rgba(71, 156, 230, 0.8)',
+          '#887be3': 'rgba(136, 123, 227, 0.8)',
+          '#7681a3': 'rgba(118, 129, 163, 0.8)',
         }
         return (
           colors[d.color as keyof typeof colors] || 'rgba(71, 156, 230, 0.2)'
@@ -233,16 +249,14 @@ export function GraphOverlay() {
       .attr('stroke', (d) => d.color)
       .attr('stroke-width', 1.5)
       .style('filter', (d) => `drop-shadow(0 0 6px ${d.color})`)
-      .style('backdrop-filter', 'blur(8px)')
-      .style('transition', 'all 0.3s ease')
 
-    // Add labels
+    // Add labels with smaller font
     node
       .append('text')
       .attr('class', 'node-label')
       .attr('text-anchor', 'middle')
-      .attr('dy', (d) => d.size + 15)
-      .attr('font-size', '10px')
+      .attr('dy', (d) => d.size + 12)
+      .attr('font-size', '8px')
       .attr('font-weight', '500')
       .attr('fill', '#E8EAED')
       .attr('pointer-events', 'none')
@@ -257,21 +271,19 @@ export function GraphOverlay() {
         d.fx = d.x
         d.fy = d.y
         d3.select(this).style('cursor', 'grabbing')
-        // Add visual feedback during drag
         d3.select(this).select('.node-glow').attr('opacity', 0.6)
         d3.select(this).select('.node-main').attr('stroke-width', 3)
       })
       .on('drag', function (event, d) {
-        d.fx = event.x
-        d.fy = event.y
+        const nodeRadius = d.size + 10
+        d.fx = Math.max(nodeRadius, Math.min(width - nodeRadius, event.x))
+        d.fy = Math.max(nodeRadius, Math.min(height - nodeRadius, event.y))
       })
       .on('end', function (event, d) {
         if (!event.active) simulation.alphaTarget(0)
-        // Allow node to float freely after dragging
         d.fx = null
         d.fy = null
         d3.select(this).style('cursor', 'grab')
-        // Remove visual feedback
         d3.select(this).select('.node-glow').attr('opacity', 0)
         d3.select(this).select('.node-main').attr('stroke-width', 1.5)
       })
@@ -322,12 +334,10 @@ export function GraphOverlay() {
           .attr('r', d.size)
           .attr('stroke-width', 1.5)
 
-        link
-          .style('stroke-opacity', 0.4)
-          .style('stroke-width', (l) => l.strength * 2)
+        link.style('stroke-opacity', 0.4).style('stroke-width', (l) => l.strength * 2)
       })
 
-    // Animate particles using requestAnimationFrame (better performance)
+    // Animate particles using requestAnimationFrame
     let particleProgress = 0
     let animationFrameId: number
 
@@ -350,7 +360,6 @@ export function GraphOverlay() {
       animationFrameId = requestAnimationFrame(animateParticles)
     }
 
-    // Start particle animation independently
     animateParticles()
 
     // Update positions on tick
@@ -375,32 +384,28 @@ export function GraphOverlay() {
       clearTimeout(timer)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [])
+  }, [shouldRender])
+
+  if (!shouldRender) return null
 
   return (
-    <div
-      className="absolute top-24 right-32 w-[600px] h-[600px] z-10 pointer-events-auto"
+    <div 
+      className="relative w-full h-[400px] overflow-visible flex items-center justify-center" 
       onWheel={(e) => e.preventDefault()}
     >
-      <style>{`
-        @keyframes pulse {
-          0%, 100% {
-            r: 8;
-            opacity: 0.3;
-          }
-          50% {
-            r: 12;
-            opacity: 0.1;
-          }
-        }
-      `}</style>
-      <svg
-        ref={svgRef}
-        className={`w-full h-full transition-opacity duration-1000 pointer-events-auto ${
-          isVisible ? 'opacity-100' : 'opacity-0'
-        }`}
-        preserveAspectRatio="xMidYMid meet"
-      />
+      {/* Gradient background - centered behind the SVG graph */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] rounded-full bg-primary opacity-30 dark:opacity-19 blur-[110px] animate-float pointer-events-none" />
+
+      {/* SVG Graph */}
+      <div className="relative z-10 w-full h-full">
+        <svg
+          ref={svgRef}
+          className={`w-full h-full transition-opacity duration-1000 ${
+            isVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      </div>
     </div>
   )
 }

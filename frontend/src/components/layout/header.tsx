@@ -7,7 +7,7 @@ import { ThemeToggle } from '~/components/ui/theme-toggle'
 
 export function Header() {
   return (
-    <nav className="flex items-center justify-between mb-12 gap-4">
+    <nav className="flex items-center justify-between py-4 gap-4">
       <Link
         to="/"
         className="flex items-center space-x-3 group cursor-pointer flex-shrink-0"

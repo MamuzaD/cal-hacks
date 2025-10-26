@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { Button } from '~/components/ui/button'
 import { landingPage } from '~/constants'
 
@@ -16,18 +17,83 @@ export function SearchBar({
   variant = 'hero',
   onSearch,
 }: SearchBarProps) {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [isQuickStartUsed, setIsQuickStartUsed] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
 
-  const handleSearch = () => {
+  useEffect(() => {
+    if (isQuickStartUsed) {
+      const timer = setTimeout(() => {
+        setIsQuickStartUsed(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [isQuickStartUsed])
+
+  const searchBackend = async (searchTerm: string) => {
+    try {
+      setIsSearching(true)
+      
+      // Mock data for demo purposes
+      const mockSearchResults: Record<string, string> = {
+        'pfizer': 'pfizer',
+        'apple': 'apple',
+        'tesla': 'tesla',
+        'openai': 'openai',
+        'jpmorgan': 'jpmorgan',
+        'blackrock': 'blackrock',
+        'nvidia': 'nvidia',
+      }
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      const normalizedTerm = searchTerm.toLowerCase().trim()
+      const id = mockSearchResults[normalizedTerm]
+      
+      if (id) {
+        // Found in database, navigate to visual
+        navigate({ to: '/visual/$id', params: { id } })
+      } else {
+        // Not found, navigate to showcase
+        navigate({ to: '/showcase' })
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      // On error, navigate to showcase
+      navigate({ to: '/showcase' })
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleSearch = async () => {
+    if (!query.trim()) return
+    
     if (onSearch) {
       onSearch(query)
     }
+    
+    await searchBackend(query)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch()
     }
+  }
+
+  const handleQuickStartClick = async (example: string) => {
+    setQuery(example)
+    setIsQuickStartUsed(true)
+    // Auto-trigger search after a brief delay
+    setTimeout(async () => {
+      if (onSearch) {
+        onSearch(example)
+      }
+      await searchBackend(example)
+    }, 300)
   }
 
   if (variant === 'compact') {
@@ -53,7 +119,13 @@ export function SearchBar({
     <div className="flex flex-col items-center mt-16 w-full">
       <div className="max-w-2xl w-full">
         <div className="relative group">
-          <div className="relative flex items-center glass-strong rounded-2xl px-6 py-5 border border-primary/10  hover:border-primary/30 transition-all bg-gradient-to-r from-white/5 via-white/8 to-white/5">
+          <div
+            className={`relative flex items-center glass-strong rounded-2xl px-6 py-5 border transition-all duration-500 bg-gradient-to-r from-white/5 via-white/8 to-white/5 ${
+              isQuickStartUsed
+                ? 'border-primary scale-[1.02] animate-pulse-border shadow-lg'
+                : 'border-primary/10 hover:border-primary/30'
+            }`}
+          >
             <Search className="w-6 h-6 text-primary mr-3" />
             <input
               type="text"
@@ -65,9 +137,12 @@ export function SearchBar({
             />
             <Button
               onClick={handleSearch}
-              className="ml-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-background font-semibold transition-all shadow-lg hover:shadow-xl"
+              disabled={isSearching}
+              className={`cursor-pointer ml-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-background font-semibold transition-all ${
+                isQuickStartUsed ? 'shadow-xl scale-105' : 'shadow-lg hover:shadow-xl'
+              }`}
             >
-              {buttonText}
+              {isSearching ? 'Searching...' : buttonText}
             </Button>
           </div>
         </div>
@@ -82,12 +157,9 @@ export function SearchBar({
             key={example}
             variant="outline"
             size="sm"
-            className="glass rounded-xl text-sm font-medium text-foreground hover:text-primary border border-white/5 hover:border-primary/30 transition-all hover:scale-105 glow-hover-cyan"
+            className="glass cursor-pointer hover:scale-110 scale-100 hover:shadow-lg hover:shadow-primary/25 focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background transition-transform"
             style={{ animationDelay: `${index * 100}ms` }}
-            onClick={() => {
-              console.log('test')
-              setQuery(example)
-            }}
+            onClick={() => handleQuickStartClick(example)}
           >
             {example}
           </Button>

@@ -25,7 +25,7 @@ export function CTASection() {
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-[2.5rem] blur-xl opacity-30 group-hover:opacity-60 transition-opacity duration-500" />
 
           {/* Main CTA card with enhanced styling */}
-          <div className="relative glass-strong rounded-[2rem] p-8 md:p-12 lg:p-16 text-center border border-white/10 backdrop-blur-xl hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
+          <div className="relative glass-strong rounded-[2rem] p-8 md:p-12 lg:p-16 text-center border border-black/10 dark:border-white/10 backdrop-blur-xl hover:border-black/20 dark:hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
             {/* Enhanced title with better typography */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-8 leading-tight tracking-tight">
               <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-shimmer inline-block shimmer-bg-200">
