@@ -1,0 +1,23 @@
+# Caddyfile for serving React SPA
+
+{
+    auto_https off
+    admin off
+}
+
+:{$PORT:8080} {
+    root * /srv
+    encode gzip
+
+    # Try to serve file, fall back to index.html for SPA routing
+    try_files {path} /index.html
+    
+    file_server
+    
+    # Add security headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer-when-downgrade"
+    }
+}
