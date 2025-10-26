@@ -20,7 +20,7 @@ interface SearchResponse {
   reasoning: string
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export function SearchBar({
   placeholder = 'Search...',
@@ -41,7 +41,7 @@ export function SearchBar({
       if (!searchTerm) {
         throw new Error('Missing search term')
       }
-      const url = `${API_URL}/api/search?q=${encodeURIComponent(searchTerm)}`
+      const url = `${API_BASE_URL}/api/search?q=${encodeURIComponent(searchTerm)}`
       const res = await fetch(url)
       if (!res.ok) {
         const err = new Error(

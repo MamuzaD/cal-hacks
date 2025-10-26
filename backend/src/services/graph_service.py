@@ -12,6 +12,14 @@ async def get_entity_graph(
 ) -> Tuple[list, list]:
     """
     Get graph data for an entity - nodes and edges for visualization.
+    
+    Edge Types & Values:
+    - stock-holding: Positive values (e.g., $500,000) = ownership amount
+    - lobbying: Could be negative (e.g., -$100,000) = spending on influence
+    - campaign-contribution: Could be negative = money donated
+    - investment: Positive values = invested amount
+    
+    The frontend uses these values to determine edge thickness/weight.
 
     Args:
         entity_id: Entity identifier (integer ID)
@@ -72,14 +80,18 @@ async def get_entity_graph(
                         }
                     )
                 # Add edge from person to company
+                # Positive value = current stock ownership (active)
+                # Negative value = sold position (profit from sale)
+                holding_val = float(holding["holding_value"]) if holding["holding_value"] else 0
+                status = "sold" if holding_val < 0 else "active"
+                
                 edges.append(
                     {
                         "source": person["id"],
                         "target": holding["company_id"],
-                        "edge_type": "holding",
-                        "ownership_value": float(holding["holding_value"])
-                        if holding["holding_value"]
-                        else None,
+                        "edge_type": "stock-holding",
+                        "ownership_value": abs(holding_val) if holding_val else None,
+                        "status": status,
                     }
                 )
 
@@ -130,14 +142,18 @@ async def get_entity_graph(
                         }
                     )
                 # Edge from person to company (person holds company)
+                # Positive value = current stock ownership (active)
+                # Negative value = sold position (profit from sale)
+                holding_val = float(pol["holding_value"]) if pol["holding_value"] else 0
+                status = "sold" if holding_val < 0 else "active"
+                
                 edges.append(
                     {
                         "source": pol["id"],
                         "target": company["id"],
-                        "edge_type": "holding",
-                        "ownership_value": float(pol["holding_value"])
-                        if pol["holding_value"]
-                        else None,
+                        "edge_type": "stock-holding",
+                        "ownership_value": abs(holding_val) if holding_val else None,
+                        "status": status,
                     }
                 )
 

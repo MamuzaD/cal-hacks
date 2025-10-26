@@ -51,6 +51,7 @@ async def graph(
             type=e["edge_type"],
             holding_value=e["ownership_value"],
             label=e.get("edge_type"),
+            status=e.get("status", "active"),
         )
         edges.append(edge)
 

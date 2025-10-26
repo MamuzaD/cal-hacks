@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from './button'
 import type { Node, Edge } from '~/lib/mockData'
+import { usePerson, useCompany } from '~/lib/queries'
 
 interface NodeDashboardProps {
   node: Node
@@ -14,6 +15,14 @@ export function NodeDashboard({
   allEdges,
 }: NodeDashboardProps) {
   const navigate = useNavigate()
+
+  // Fetch enriched details for the selected node
+  const personQuery = usePerson(node.type === 'person' ? node.id : undefined)
+  const companyQuery = useCompany(node.type === 'company' ? node.id : undefined)
+
+  const isLoadingDetails = personQuery.isLoading || companyQuery.isLoading
+  const person = node.type === 'person' ? (personQuery.data as Partial<Node> | undefined) : undefined
+  const company = node.type === 'company' ? (companyQuery.data as Partial<Node> | undefined) : undefined
 
   // Helper to get ID from edge source/target (handles both number and D3 object format)
   const getEdgeId = (value: any): number => {
@@ -48,14 +57,20 @@ export function NodeDashboard({
     return foundNode?.name || String(nodeId)
   }
 
-  const formatCurrency = (value?: number) => {
+  const formatCurrency = (value?: number, isSold: boolean = false) => {
     if (!value) return 'N/A'
-    return new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value)
+    
+    // Add profit indicator for sold positions
+    if (isSold) {
+      return `${formatted} profit`
+    }
+    return formatted
   }
 
   const formatDate = (dateStr?: string) => {
@@ -78,8 +93,13 @@ export function NodeDashboard({
     }
   }
 
-  const getEdgeTypeColor = (type: string) => {
-    // Single types
+  const getEdgeTypeColor = (type: string, status?: string) => {
+    // For stock-holding, status determines color
+    if (type === 'stock-holding' && status === 'sold') {
+      return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' // Cyan for sold
+    }
+    
+    // Type-based colors (for active holdings and other types)
     if (type === 'stock-holding')
       return 'bg-green-500/20 text-green-400 border-green-500/30'
     if (type === 'campaign-contribution')
@@ -92,16 +112,16 @@ export function NodeDashboard({
     // Combined types (bidirectional relationships)
     if (type.includes(' + ')) {
       if (type.includes('stock-holding') && type.includes('lobbying'))
-        return 'bg-green-400/20 text-green-300 border-green-400/30'
+        return 'bg-lime-500/20 text-lime-400 border-lime-500/30'
       if (
         type.includes('stock-holding') &&
         type.includes('campaign-contribution')
       )
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-      if (type.includes('lobbying') && type.includes('campaign-contribution'))
         return 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+      if (type.includes('lobbying') && type.includes('campaign-contribution'))
+        return 'bg-orange-400/20 text-orange-300 border-orange-400/30'
       if (type.includes('stock-holding') && type.includes('investment'))
-        return 'bg-sky-500/20 text-sky-400 border-sky-500/30'
+        return 'bg-teal-500/20 text-teal-400 border-teal-500/30'
       if (type.includes('lobbying') && type.includes('investment'))
         return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
       if (type.includes('campaign-contribution') && type.includes('investment'))
@@ -109,15 +129,38 @@ export function NodeDashboard({
       return 'bg-violet-500/20 text-violet-400 border-violet-500/30'
     }
 
-    return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+    return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
   }
+  
+  const getStatusLabel = (status?: string, type?: string) => {
+    // Only show special label for sold stock holdings
+    if (type === 'stock-holding' && status === 'sold') return 'Sold Position'
+    return type
+  }
+  
+  const getStatusTextColor = (status?: string, type?: string) => {
+    // Only special color for sold stock holdings
+    if (type === 'stock-holding' && status === 'sold') {
+      return 'text-cyan-400 font-semibold' // Cyan for sold
+    }
+    return 'text-muted-foreground'
+  }
+
+  // Prefer API details for sidebar, fallback to graph node
+  const displayName = (person?.name ?? company?.name) ?? node.name
+  const displayPosition = node.type === 'person' ? (person?.position ?? node.position) : undefined
+  const displayState = node.type === 'person' ? (person?.state ?? node.state) : undefined
+  const displayParty = node.type === 'person' ? (person?.party_affiliation ?? node.party_affiliation) : undefined
+  const displayNetWorth = node.type === 'person' ? (person?.estimated_net_worth ?? node.estimated_net_worth) : undefined
+  const displayLastTrade = node.type === 'person' ? (person?.last_trade_date ?? node.last_trade_date) : undefined
+  const displayTicker = node.type === 'company' ? (company?.ticker ?? node.ticker) : undefined
 
   return (
     <div className="h-full flex flex-col p-4 bg-background border-l border-primary/20 overflow-hidden">
       {/* Header */}
       <div className="shrink-0 mb-3">
         <h2 className="text-xl font-bold mb-2 wrap-word-break line-clamp-2">
-          {node.name}
+          {displayName}
         </h2>
         <div className="flex flex-col gap-1.5 mb-3">
           <span
@@ -129,34 +172,35 @@ export function NodeDashboard({
           {/* Person-specific fields */}
           {node.type === 'person' && (
             <div className="space-y-1 text-sm mt-2">
-              {node.position && (
+              {isLoadingDetails && <div className="text-xs text-muted-foreground">Loading details…</div>}
+              {displayPosition && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">Position:</span>
-                  <span>{node.position}</span>
+                  <span>{displayPosition}</span>
                 </div>
               )}
-              {node.state && (
+              {displayState && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">State:</span>
-                  <span>{node.state}</span>
+                  <span>{displayState}</span>
                 </div>
               )}
-              {node.party_affiliation && (
+              {displayParty && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">Party:</span>
-                  <span>{node.party_affiliation}</span>
+                  <span>{displayParty}</span>
                 </div>
               )}
-              {node.estimated_net_worth && (
+              {typeof displayNetWorth === 'number' && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">Net Worth:</span>
-                  <span>{formatCurrency(node.estimated_net_worth)}</span>
+                  <span>{formatCurrency(displayNetWorth)}</span>
                 </div>
               )}
-              {node.last_trade_date && (
+              {displayLastTrade && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">Last Trade:</span>
-                  <span>{formatDate(node.last_trade_date)}</span>
+                  <span>{formatDate(displayLastTrade)}</span>
                 </div>
               )}
             </div>
@@ -165,10 +209,11 @@ export function NodeDashboard({
           {/* Company-specific fields */}
           {node.type === 'company' && (
             <div className="space-y-1 text-sm mt-2">
-              {node.ticker && (
+              {isLoadingDetails && <div className="text-xs text-muted-foreground">Loading details…</div>}
+              {displayTicker && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground font-medium">Ticker:</span>
-                  <span className="font-mono font-semibold">{node.ticker}</span>
+                  <span className="font-mono font-semibold">{displayTicker}</span>
                 </div>
               )}
             </div>
@@ -203,13 +248,13 @@ export function NodeDashboard({
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type)} w-fit`}
+                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
                     >
-                      {edge.type}
+                      {getStatusLabel(edge.status, edge.type)}
                     </span>
                     {edge.holding_value && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(edge.holding_value)}
+                      <span className={`text-xs ${getStatusTextColor(edge.status)}`}>
+                        {formatCurrency(edge.holding_value, edge.status === 'sold')}
                       </span>
                     )}
                   </div>
@@ -241,13 +286,13 @@ export function NodeDashboard({
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type)} w-fit`}
+                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
                     >
-                      {edge.type}
+                      {getStatusLabel(edge.status, edge.type)}
                     </span>
                     {edge.holding_value && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(edge.holding_value)}
+                      <span className={`text-xs ${getStatusTextColor(edge.status)}`}>
+                        {formatCurrency(edge.holding_value, edge.status === 'sold')}
                       </span>
                     )}
                   </div>

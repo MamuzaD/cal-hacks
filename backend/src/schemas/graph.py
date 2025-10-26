@@ -6,12 +6,18 @@ from decimal import Decimal
 from datetime import date
 
 EdgeType = Literal[
-    "holding",
+    "stock-holding",
+    "lobbying",
+    "campaign-contribution",
+    "investment",
     "voted_on",
-    "lobbied_by",
     "partnered_with",
     "board_member",
-    "donated_to",
+]
+
+EdgeStatus = Literal[
+    "active",      # Currently holding stock
+    "sold",        # Previously held, now sold (profit/loss realized)
 ]
 
 
@@ -39,6 +45,7 @@ class GraphEdge(BaseModel):
     type: EdgeType
     holding_value: Optional[Decimal] = None
     label: Optional[str] = None
+    status: EdgeStatus = "active"  # Status of the relationship/holding
 
 
 class GraphResponse(BaseModel):

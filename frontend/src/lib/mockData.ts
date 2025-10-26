@@ -12,12 +12,17 @@ export interface Node {
   ticker?: string
 }
 
+export type EdgeStatus = 
+  | 'active'      // Currently holding stock
+  | 'sold'        // Previously held, now sold (profit/loss realized)
+
 export interface Edge {
   source: number
   target: number
   type: string
   holding_value?: number
   label?: string
+  status?: EdgeStatus  // Status of the relationship/holding
 }
 
 export interface GraphData {

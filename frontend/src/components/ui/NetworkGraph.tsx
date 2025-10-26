@@ -20,6 +20,7 @@ interface SimulationNode extends NodeType {
 interface ProcessedEdge extends EdgeType {
   isBidirectional?: boolean
   originalTypes?: string[]
+  status?: 'active' | 'sold'
 }
 
 export function NetworkGraph({
@@ -70,17 +71,36 @@ export function NetworkGraph({
           type: combinedType,
           isBidirectional: true,
           originalTypes: types,
-          holding_value: (edge.holding_value || 0) + (reverseEdge.holding_value || 0)
+          holding_value: (edge.holding_value || 0) + (reverseEdge.holding_value || 0),
+          status: edge.status === 'sold' || reverseEdge.status === 'sold' ? 'sold' : edge.status,
         })
 
         processedPairs.add(pairKey)
       } else {
         // Unidirectional edge
-        processedEdges.push({ ...edge })
+        processedEdges.push({ ...edge, status: edge.status })
       }
     })
 
-    // Create simulation
+    // Calculate dynamic force parameters based on node count
+    const nodeCount = nodes.length
+    
+    // Scale link distance with node count (more nodes = more distance)
+    const linkDistance = nodeCount > 50 ? 150 : 
+                        nodeCount > 30 ? 120 : 
+                        nodeCount > 15 ? 100 : 80
+    
+    // Scale charge strength with node count (more nodes = stronger repulsion)
+    const chargeStrength = nodeCount > 50 ? -800 : 
+                          nodeCount > 30 ? -600 : 
+                          nodeCount > 15 ? -400 : -300
+    
+    // Scale collision radius with node count
+    const collisionRadius = nodeCount > 50 ? 50 : 
+                           nodeCount > 30 ? 45 : 
+                           nodeCount > 15 ? 40 : 35
+
+    // Create simulation with adaptive forces
     const simulation = d3
       .forceSimulation(nodes as SimulationNode[])
       .force(
@@ -88,83 +108,91 @@ export function NetworkGraph({
         d3
           .forceLink(processedEdges)
           .id((d: any) => d.id)
-          .distance(100),
+          .distance(linkDistance)
+          .strength(0.5), // Slightly weaker links to allow more spreading
       )
-      .force('charge', d3.forceManyBody().strength(-300))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(40))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
+      .force('center', d3.forceCenter(width / 2, height / 2).strength(0.05)) // Weaker center force
+      .force('collision', d3.forceCollide().radius(collisionRadius))
+      .force('x', d3.forceX(width / 2).strength(0.02)) // Very weak x-centering
+      .force('y', d3.forceY(height / 2).strength(0.02)) // Very weak y-centering
+      .alphaDecay(0.02) // Slower decay for better stabilization
+      .velocityDecay(0.3) // More "friction" to slow down nodes
 
-    // Helper function to get edge color
-    const getEdgeColor = (type: string): string => {
-      if (type === 'stock-holding') return '#4ade80' // green
-      if (type === 'campaign-contribution') return '#f87171' // red
-      if (type === 'lobbying') return '#facc15' // yellow
-      if (type === 'investment') return '#60a5fa' // blue
+    // Helper function to get edge color based on type and status
+    const getEdgeColor = (type: string, status?: string): string => {
+      // For stock-holding, status determines color
+      if (type === 'stock-holding' && status === 'sold') {
+        return '#06b6d4' // cyan-500 for sold positions (profit/loss realized)
+      }
+      
+      // Type-based colors (for active holdings and other types)
+      if (type === 'stock-holding') return '#22c55e' // green-500 for active holdings
+      if (type === 'campaign-contribution') return '#ef4444' // red-500
+      if (type === 'lobbying') return '#eab308' // yellow-500
+      if (type === 'investment') return '#3b82f6' // blue-500
 
       // Combined types - blend colors or use distinct colors
       if (type.includes(' + ')) {
         if (type.includes('stock-holding') && type.includes('lobbying'))
-          return '#86efac' // light green
+          return '#84cc16' // lime-500
         if (
           type.includes('stock-holding') &&
           type.includes('campaign-contribution')
         )
-          return '#fb923c' // orange
+          return '#f59e0b' // amber-500
         if (type.includes('lobbying') && type.includes('campaign-contribution'))
-          return '#fcd34d' // gold
+          return '#fb923c' // orange-400
         if (type.includes('stock-holding') && type.includes('investment'))
-          return '#7dd3fc' // sky blue
+          return '#14b8a6' // teal-500
         if (type.includes('lobbying') && type.includes('investment'))
-          return '#a78bfa' // purple
+          return '#a855f7' // purple-500
         if (
           type.includes('campaign-contribution') &&
           type.includes('investment')
         )
-          return '#f472b6' // pink
-        return '#c084fc' // default purple for other combinations
+          return '#ec4899' // pink-500
+        return '#8b5cf6' // violet-500 for other combinations
       }
 
-      return '#60a5fa' // default blue
+      return '#6366f1' // indigo-500 default
     }
 
-    // Create defs for markers
-    const defs = svg.append('defs')
+    // Calculate adaptive visual parameters early (needed for markers)
+    const nodeRadius = nodeCount > 50 ? 12 : nodeCount > 30 ? 14 : 15
+    const fontSize = nodeCount > 50 ? 10 : nodeCount > 30 ? 11 : 12
+    const labelOffset = nodeRadius + 5
+    
+    // No arrows needed - just lines connecting nodes
 
-    // Get all unique edge types including combined ones
-    const allEdgeTypes = Array.from(new Set(processedEdges.map((e) => e.type)))
+    // Helper function to calculate edge width based on value
+    const getEdgeWidth = (edge: ProcessedEdge): number => {
+      if (!edge.holding_value) return 2 // default width
+      
+      const value = Math.abs(edge.holding_value)
+      
+      // Use logarithmic scale for better visual distribution
+      // Maps values to width range [1, 10]
+      if (value < 1000) return 1
+      if (value < 10000) return 2
+      if (value < 50000) return 3
+      if (value < 100000) return 4
+      if (value < 500000) return 5
+      if (value < 1000000) return 6
+      if (value < 5000000) return 7
+      if (value < 10000000) return 8
+      if (value < 50000000) return 9
+      return 10
+    }
 
-    // Create markers for arrowheads (both start and end)
-    allEdgeTypes.forEach((edgeType) => {
-      const color = getEdgeColor(edgeType)
-
-      // End marker (normal arrow)
-      defs
-        .append('marker')
-        .attr('id', `arrow-end-${edgeType.replace(/\s+/g, '-')}`)
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 25)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M0,-5L10,0L0,5')
-        .attr('fill', color)
-
-      // Start marker (reverse arrow for bidirectional)
-      defs
-        .append('marker')
-        .attr('id', `arrow-start-${edgeType.replace(/\s+/g, '-')}`)
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', -15)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M10,-5L0,0L10,5')
-        .attr('fill', color)
-    })
+    // Helper function to get edge opacity based on type
+    const getEdgeOpacity = (edge: ProcessedEdge): number => {
+      // Lobbying and contributions are "spending" - make them slightly more transparent
+      if (edge.type === 'lobbying' || edge.type === 'campaign-contribution') {
+        return 0.5
+      }
+      return 0.7 // holdings and investments are more solid
+    }
 
     // Create links
     const link = svg
@@ -174,18 +202,18 @@ export function NetworkGraph({
       .data(processedEdges)
       .enter()
       .append('line')
-      .attr('stroke-width', 2)
-      .attr('stroke', (d: ProcessedEdge) => getEdgeColor(d.type))
-      .attr('opacity', 0.6)
-      .attr(
-        'marker-end',
-        (d: ProcessedEdge) => `url(#arrow-end-${d.type.replace(/\s+/g, '-')})`,
-      )
-      .attr('marker-start', (d: ProcessedEdge) =>
-        d.isBidirectional
-          ? `url(#arrow-start-${d.type.replace(/\s+/g, '-')})`
-          : null,
-      )
+      .attr('stroke-width', (d: ProcessedEdge) => getEdgeWidth(d))
+      .attr('stroke', (d: ProcessedEdge) => getEdgeColor(d.type, d.status))
+      .attr('opacity', (d: ProcessedEdge) => {
+        // Higher opacity for sold/special statuses
+        if (d.status && d.status !== 'active') return 0.85
+        return getEdgeOpacity(d)
+      })
+      .attr('stroke-dasharray', (d: ProcessedEdge) => {
+        // Dashed line for sold positions (only for stock-holding)
+        if (d.type === 'stock-holding' && d.status === 'sold') return '5,5'
+        return null
+      })
 
     // Create nodes
     const node = svg
@@ -200,7 +228,10 @@ export function NetworkGraph({
     // Add circles for nodes
     node
       .append('circle')
-      .attr('r', 15)
+      .attr('r', (_d, i) => {
+        // Make the first node (center entity) slightly larger
+        return i === 0 ? nodeRadius + 3 : nodeRadius
+      })
       .attr('fill', (d) => {
         if (d.type === 'company') return '#60a5fa'
         if (d.type === 'person') return '#4ade80'
@@ -215,8 +246,8 @@ export function NetworkGraph({
     node
       .append('text')
       .text((d) => d.name)
-      .attr('font-size', 12)
-      .attr('dx', 20)
+      .attr('font-size', fontSize)
+      .attr('dx', labelOffset)
       .attr('dy', 5)
       .attr('fill', isDarkMode ? '#fff' : '#000')
       .attr('pointer-events', 'none')
