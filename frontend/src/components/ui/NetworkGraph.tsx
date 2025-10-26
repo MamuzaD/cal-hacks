@@ -115,8 +115,11 @@ export function NetworkGraph({
 
     // Find min and max values for scaling
     const values = Array.from(nodeValues.values()).filter((v) => v > 0)
-    const minValue = Math.min(...values)
-    const maxValue = Math.max(...values)
+    // Handle empty values array to prevent Infinity/-Infinity and NaN in radius calculations
+    // Use a small positive floor value to avoid log(0) issues in logarithmic scaling
+    const defaultValue = 0.01
+    const minValue = values.length > 0 ? Math.min(...values) : defaultValue
+    const maxValue = values.length > 0 ? Math.max(...values) : defaultValue
 
     // Scale node size based on value (logarithmic scale for better distribution)
     // Adjust size ranges based on node count for better visibility in large graphs
