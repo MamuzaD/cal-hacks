@@ -9,11 +9,17 @@ export const landingPage = {
     previewLabel: 'DEMO PREVIEW',
     subtitle:
       'Uncover hidden connections between corporations and politicians through AI-powered analysis of',
-    subtitleHighlight: 'campaign finance, lobbying activities, and stock holdings',
+    subtitleHighlight:
+      'campaign finance, lobbying activities, and stock holdings',
     searchPlaceholder:
       "Try 'Pfizer', 'Tesla', 'BlackRock', or a politician's name…",
     searchButton: 'Explore',
-    exampleSearches: ['Pfizer', 'Ro Khanna', 'Google', 'JPMorgan'],
+    exampleSearches: [
+      { label: 'Pfizer', value: 'PFE' },
+      { label: 'Nvidia', value: 'NVDA' },
+      { label: 'Google', value: 'GOOGL' },
+      { label: 'JPMorgan', value: 'JPM' },
+    ],
     connectionNodes: [
       { label: 'Lawmakers', icon: 'Users' },
       { label: 'Bills & Votes', icon: 'FileText' },

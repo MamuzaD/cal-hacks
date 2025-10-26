@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { NetworkGraph } from '~/components/ui/NetworkGraph'
-import { NodeDashboard } from '~/components/ui/NodeDashboard'
+import { NodeDashboard } from '~/components/visual/NodeDashboard'
 import { useVisualData } from '~/lib/queries'
 import type { Node } from '~/lib/mockData'
 

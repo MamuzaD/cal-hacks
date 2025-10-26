@@ -198,16 +198,16 @@ export function SearchBar({
         <span className="text-sm text-muted-foreground font-medium">
           {hero.quickStartLabel}
         </span>
-        {hero.exampleSearches.map((example: string, index: number) => (
+        {hero.exampleSearches.map((example: { label: string; value: string }, index: number) => (
           <Button
-            key={example}
+            key={example.value}
             variant="outline"
             size="sm"
             className="glass cursor-pointer hover:scale-110 scale-100 hover:shadow-lg hover:shadow-primary/25 focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background transition-transform"
             style={{ animationDelay: `${index * 100}ms` }}
-            onClick={() => handleQuickStartClick(example)}
+            onClick={() => handleQuickStartClick(example.value)}
           >
-            {example}
+            {example.label}
           </Button>
         ))}
       </div>
