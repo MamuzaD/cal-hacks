@@ -5,13 +5,13 @@ import { NodeDashboard } from '~/components/ui/NodeDashboard'
 import { useVisualData } from '~/lib/queries'
 import type { Node } from '~/lib/mockData'
 
-export const Route = createFileRoute('/visual/$id')({
+export const Route = createFileRoute('/visual/$type/$id')({
   component: VisualPage,
 })
 
 function VisualPage() {
-  const { id } = Route.useParams()
-  const { data, isLoading, isError } = useVisualData(id)
+  const { type, id } = Route.useParams()
+  const { data, isLoading, isError } = useVisualData(id, type)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
 
   // Set the default selected node to the first node (the main entity)
@@ -36,7 +36,7 @@ function VisualPage() {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">No data found for {id}</p>
+          <p className="text-muted-foreground">No data found for {type}/{id}</p>
         </div>
       </div>
     )
@@ -73,3 +73,4 @@ function VisualPage() {
     </div>
   )
 }
+

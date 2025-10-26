@@ -1,15 +1,23 @@
 export interface Node {
-  id: string
-  label: string
-  type: 'company' | 'person' | 'politician' | 'organization'
-  category?: string
+  id: number
+  name: string
+  type: 'company' | 'person'
+  // Person fields
+  position?: string
+  state?: string
+  party_affiliation?: string
+  estimated_net_worth?: number
+  last_trade_date?: string
+  // Company fields
+  ticker?: string
 }
 
 export interface Edge {
-  source: string
-  target: string
+  source: number
+  target: number
   type: string
-  value?: number
+  holding_value?: number
+  label?: string
 }
 
 export interface GraphData {

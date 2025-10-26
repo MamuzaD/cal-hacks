@@ -3,16 +3,16 @@
 from pydantic import BaseModel
 from datetime import date
 from typing import Optional
-from uuid import UUID
+from decimal import Decimal
 
 
 class PersonResponse(BaseModel):
-    """Response for person metadata."""
+    """Response for person/politician metadata."""
 
-    id: UUID
+    id: int
     name: str
-    role: Optional[str] = None
-    img_url: Optional[str] = None
-    state: Optional[str] = None
-    party_affiliation: Optional[str] = None
-    start_date_of_position: Optional[date] = None
+    position: str
+    state: str
+    party_affiliation: str
+    estimated_net_worth: Decimal
+    last_trade_date: Optional[date] = None

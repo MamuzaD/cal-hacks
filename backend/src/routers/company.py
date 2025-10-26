@@ -23,8 +23,7 @@ async def get_company(
         raise HTTPException(status_code=404, detail="Company not found")
 
     return {
-        "id": id,  # Temporary hash
+        "id": row["id"],
         "name": row["name"],
-        "ticker": row.get("ticker"),
-        "img_url": row.get("img_url"),
+        "ticker": row["ticker"],
     }

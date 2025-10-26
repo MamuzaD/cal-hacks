@@ -17,7 +17,6 @@ export function Provider({
   // Log all React Query calls in dev mode
   if (!import.meta.env.PROD) {
     const originalFetch = window.fetch
-    let currentGroup: string | null = null
 
     window.fetch = async (...args) => {
       const [input, init] = args
@@ -26,11 +25,7 @@ export function Provider({
       const endpoint = new URL(urlString).pathname
       const groupTitle = `[${method}] ${endpoint}`
 
-      if (currentGroup !== groupTitle) {
-        if (currentGroup) console.groupEnd()
-        console.groupCollapsed(groupTitle)
-        currentGroup = groupTitle
-      }
+      console.groupCollapsed(groupTitle)
 
       try {
         const response = await originalFetch(...args)
@@ -44,12 +39,10 @@ export function Provider({
         } catch {}
         console.log('Response:', { ok: response.ok, status: response.status, body })
         console.groupEnd()
-        currentGroup = null
         return response
       } catch (error) {
         console.error('Fetch error:', error)
         console.groupEnd()
-        currentGroup = null
         throw error
       }
     }

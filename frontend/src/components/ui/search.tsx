@@ -71,6 +71,7 @@ export function SearchBar({
     if (error) {
       const status = (error as any)?.status as number | undefined
       if (status === 404) {
+        setQuery('')
         setUiError(`No results found for "${searchTerm}"`)
       } else {
         setUiError('Search failed. Please try again.')
@@ -83,7 +84,10 @@ export function SearchBar({
   // Navigate on success and reset after a delay
   useEffect(() => {
     if (data && searchTerm) {
-      navigate({ to: '/visual/$id', params: { id: data.id } })
+      navigate({
+        to: '/visual/$type/$id',
+        params: { type: data.type, id: data.id },
+      })
       // Reset searchTerm after navigation to allow fresh searches
       const timer = setTimeout(() => {
         setSearchTerm(null)
@@ -93,7 +97,6 @@ export function SearchBar({
       return () => clearTimeout(timer)
     }
   }, [data, searchTerm, navigate])
-
 
   const triggerSearch = useCallback(
     (term: string) => {
@@ -124,15 +127,17 @@ export function SearchBar({
   if (variant === 'compact') {
     return (
       <div className="relative group w-full max-w-md">
-        <div className="relative flex items-center glass rounded-xl px-4 py-2 border border-black/10 dark:hover:border-primary/30 transition-all">
+        <div
+          className={`relative flex items-center glass rounded-xl px-4 py-2 border  dark:hover:border-primary/30 transition-all ${uiError ? 'border-red-500' : 'border-black/10'}`}
+        >
           <Search className="w-4 h-4 text-primary mr-2" />
           <input
             type="text"
-            placeholder={placeholder}
+            placeholder={uiError ? "Couldn't find" : placeholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent text-foreground placeholder-muted-foreground outline-none text-sm font-light"
+            className={`flex-1 bg-transparent text-foreground  outline-none text-sm font-light ${uiError ? 'placeholder-red-500' : 'placeholder-muted-foreground'}`}
           />
           <Button
             onClick={handleSearch}
@@ -144,7 +149,6 @@ export function SearchBar({
             {isPending ? '...' : 'Go'}
           </Button>
         </div>
-        {uiError && <p className="mt-2 text-xs text-red-500">{uiError}</p>}
       </div>
     )
   }

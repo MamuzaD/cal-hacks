@@ -25,9 +25,9 @@ async def get_person(
     return {
         "id": row["id"],
         "name": row["name"],
-        "role": row["role"],
-        "img_url": row.get("img_url"),
-        "state": row.get("state"),
-        "party_affiliation": row.get("party_affiliation"),
-        "start_date_of_position": row.get("start_date_of_position"),
+        "position": row["position"],
+        "state": row["state"],
+        "party_affiliation": row["party_affiliation"],
+        "estimated_net_worth": row["estimated_net_worth"],
+        "last_trade_date": row.get("last_trade_date"),
     }

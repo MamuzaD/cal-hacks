@@ -30,12 +30,15 @@ async def graph(
     for row in nodes_rows:
         if "name" in row:
             node = GraphNode(
-                id=str(row["id"]),
+                id=row["id"],
                 type=row["type"],
                 name=row["name"],
-                ticker=row.get("ticker"),
+                position=row.get("position"),
                 state=row.get("state"),
                 party_affiliation=row.get("party_affiliation"),
+                estimated_net_worth=row.get("estimated_net_worth"),
+                last_trade_date=row.get("last_trade_date"),
+                ticker=row.get("ticker"),
             )
             nodes.append(node)
 
@@ -43,10 +46,10 @@ async def graph(
     edges = []
     for e in edges_rows:
         edge = GraphEdge(
-            source=str(e["source"]),
-            target=str(e["target"]),
+            source=e["source"],
+            target=e["target"],
             type=e["edge_type"],
-            ownership_value=e["ownership_value"],
+            holding_value=e["ownership_value"],
             label=e.get("edge_type"),
         )
         edges.append(edge)

@@ -30,10 +30,10 @@ export function HeroGraph() {
     const checkScreenSize = () => {
       setShouldRender(window.innerWidth >= 768) // md breakpoint is 768px
     }
-    
+
     checkScreenSize()
     window.addEventListener('resize', checkScreenSize)
-    
+
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
@@ -334,7 +334,9 @@ export function HeroGraph() {
           .attr('r', d.size)
           .attr('stroke-width', 1.5)
 
-        link.style('stroke-opacity', 0.4).style('stroke-width', (l) => l.strength * 2)
+        link
+          .style('stroke-opacity', 0.4)
+          .style('stroke-width', (l) => l.strength * 2)
       })
 
     // Animate particles using requestAnimationFrame
@@ -389,10 +391,7 @@ export function HeroGraph() {
   if (!shouldRender) return null
 
   return (
-    <div 
-      className="relative w-full h-[400px] overflow-visible flex items-center justify-center" 
-      onWheel={(e) => e.preventDefault()}
-    >
+    <div className="relative w-full h-[400px] overflow-visible flex items-center justify-center">
       {/* Gradient background - centered behind the SVG graph */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] rounded-full bg-primary opacity-30 dark:opacity-19 blur-[110px] animate-float pointer-events-none" />
 

@@ -11,7 +11,7 @@ async def get_person_by_id(person_id: str, db: Connection):
     Get person metadata by ID.
 
     Args:
-        person_id: Person UUID
+        person_id: Person ID (integer)
         db: Database connection
 
     Returns:
@@ -19,8 +19,8 @@ async def get_person_by_id(person_id: str, db: Connection):
     """
     row = await db.fetchrow(
         """
-        SELECT id, name, position as role, NULL as img_url, 
-               state, party_affiliation, start_date_of_position
+        SELECT id, name, position, state, party_affiliation, 
+               estimated_net_worth, last_trade_date
         FROM politicians
         WHERE id = $1
         """,
@@ -38,14 +38,16 @@ async def get_person_holdings(person_id: str, db: Connection):
         db: Database connection
 
     Returns:
-        List of holdings
+        List of holdings with company details
     """
     rows = await db.fetch(
         """
-        SELECT company, ticker, total_ownership
-        FROM holdings
-        WHERE politician_id = $1
-        ORDER BY total_ownership DESC NULLS LAST
+        SELECT h.id, h.politician_id, h.company_id, h.holding_value,
+               c.name as company_name, c.ticker
+        FROM holdings h
+        JOIN companies c ON h.company_id = c.id
+        WHERE h.politician_id = $1
+        ORDER BY h.holding_value DESC NULLS LAST
         """,
         int(person_id) if person_id.isdigit() else person_id,
     )

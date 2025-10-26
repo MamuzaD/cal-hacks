@@ -6,12 +6,12 @@ from asyncpg import Connection
 logger = logging.getLogger(__name__)
 
 
-async def get_company_by_id(company_name: str, db: Connection):
+async def get_company_by_id(company_id: str, db: Connection):
     """
-    Get company metadata by name/ticker.
+    Get company metadata by ID.
 
     Args:
-        company_name: Company name or ticker
+        company_id: Company ID (integer)
         db: Database connection
 
     Returns:
@@ -19,25 +19,21 @@ async def get_company_by_id(company_name: str, db: Connection):
     """
     row = await db.fetchrow(
         """
-        SELECT DISTINCT 
-               company as name, 
-               ticker,
-               NULL as img_url
-        FROM holdings
-        WHERE company = $1 OR ticker = $1
-        LIMIT 1
+        SELECT id, name, ticker
+        FROM companies
+        WHERE id = $1
         """,
-        company_name,
+        int(company_id) if company_id.isdigit() else company_id,
     )
     return row
 
 
-async def get_company_politicians(company_name: str, db: Connection):
+async def get_company_politicians(company_id: str, db: Connection):
     """
     Get all politicians who have holdings in this company.
 
     Args:
-        company_name: Company name
+        company_id: Company ID
         db: Database connection
 
     Returns:
@@ -46,12 +42,12 @@ async def get_company_politicians(company_name: str, db: Connection):
     rows = await db.fetch(
         """
         SELECT p.id, p.name, p.position, p.state, p.party_affiliation,
-               p.start_date_of_position, h.total_ownership
+               p.estimated_net_worth, p.last_trade_date, h.holding_value
         FROM holdings h
         JOIN politicians p ON h.politician_id = p.id
-        WHERE h.company = $1
-        ORDER BY h.total_ownership DESC NULLS LAST
+        WHERE h.company_id = $1
+        ORDER BY h.holding_value DESC NULLS LAST
         """,
-        company_name,
+        int(company_id) if company_id.isdigit() else company_id,
     )
     return rows

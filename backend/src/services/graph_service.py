@@ -13,18 +13,14 @@ async def get_entity_graph(
     """
     Get graph data for an entity - nodes and edges for visualization.
 
-    This is a simplified version that works with the current schema.
-    After migration to entities/edges, this will be more robust.
-
     Args:
-        entity_id: Entity identifier
+        entity_id: Entity identifier (integer ID)
         entity_type: 'person' or 'company'
         db: Database connection
 
     Returns:
         Tuple of (nodes_rows, edges_rows)
     """
-    # For now, adapting to existing schema
     nodes = []
     edges = []
 
@@ -32,7 +28,8 @@ async def get_entity_graph(
         # Get person details
         person = await db.fetchrow(
             """
-            SELECT id, name, position, state, party_affiliation
+            SELECT id, name, position, state, party_affiliation,
+                   estimated_net_worth, last_trade_date
             FROM politicians
             WHERE id = $1
             """,
@@ -44,40 +41,44 @@ async def get_entity_graph(
                     "id": person["id"],
                     "type": "person",
                     "name": person["name"],
+                    "position": person["position"],
                     "state": person["state"],
                     "party_affiliation": person["party_affiliation"],
+                    "estimated_net_worth": person["estimated_net_worth"],
+                    "last_trade_date": person["last_trade_date"],
                 }
             )
 
             # Get holdings (companies this person owns)
             holdings = await db.fetch(
                 """
-                SELECT DISTINCT company, ticker, total_ownership
-                FROM holdings
-                WHERE politician_id = $1
+                SELECT h.id, h.holding_value, c.id as company_id, c.name, c.ticker
+                FROM holdings h
+                JOIN companies c ON h.company_id = c.id
+                WHERE h.politician_id = $1
                 """,
                 person["id"],
             )
 
             for holding in holdings:
-                import hashlib
-
-                company_id = hashlib.md5(holding["company"].encode()).hexdigest()[:8]
-                nodes.append(
-                    {
-                        "id": company_id,
-                        "type": "company",
-                        "name": holding["company"],
-                        "ticker": holding["ticker"],
-                    }
-                )
+                # Add company node if not already present
+                if not any(n.get("id") == holding["company_id"] for n in nodes):
+                    nodes.append(
+                        {
+                            "id": holding["company_id"],
+                            "type": "company",
+                            "name": holding["name"],
+                            "ticker": holding["ticker"],
+                        }
+                    )
+                # Add edge from person to company
                 edges.append(
                     {
-                        "source": str(person["id"]),
-                        "target": company_id,
+                        "source": person["id"],
+                        "target": holding["company_id"],
                         "edge_type": "holding",
-                        "ownership_value": float(holding["total_ownership"])
-                        if holding["total_ownership"]
+                        "ownership_value": float(holding["holding_value"])
+                        if holding["holding_value"]
                         else None,
                     }
                 )
@@ -86,21 +87,16 @@ async def get_entity_graph(
         # Get company details
         company = await db.fetchrow(
             """
-            SELECT DISTINCT company as name, ticker
-            FROM holdings
-            WHERE company = $1 OR ticker = $1
-               OR substring(md5(company), 1, 8) = $1
-            LIMIT 1
+            SELECT id, name, ticker
+            FROM companies
+            WHERE id = $1
             """,
-            entity_id,
+            int(entity_id) if entity_id.isdigit() else entity_id,
         )
         if company:
-            import hashlib
-
-            company_id = hashlib.md5(company["name"].encode()).hexdigest()[:8]
             nodes.append(
                 {
-                    "id": company_id,
+                    "id": company["id"],
                     "type": "company",
                     "name": company["name"],
                     "ticker": company["ticker"],
@@ -110,12 +106,13 @@ async def get_entity_graph(
             # Get politicians who hold this company
             politicians = await db.fetch(
                 """
-                SELECT p.id, p.name, p.position, p.state, p.party_affiliation, h.total_ownership
+                SELECT p.id, p.name, p.position, p.state, p.party_affiliation,
+                       p.estimated_net_worth, p.last_trade_date, h.holding_value
                 FROM holdings h
                 JOIN politicians p ON h.politician_id = p.id
-                WHERE h.company = $1
+                WHERE h.company_id = $1
                 """,
-                company["name"],
+                company["id"],
             )
 
             for pol in politicians:
@@ -125,17 +122,21 @@ async def get_entity_graph(
                             "id": pol["id"],
                             "type": "person",
                             "name": pol["name"],
+                            "position": pol["position"],
                             "state": pol["state"],
                             "party_affiliation": pol["party_affiliation"],
+                            "estimated_net_worth": pol["estimated_net_worth"],
+                            "last_trade_date": pol["last_trade_date"],
                         }
                     )
+                # Edge from person to company (person holds company)
                 edges.append(
                     {
-                        "source": company_id,
-                        "target": str(pol["id"]),
+                        "source": pol["id"],
+                        "target": company["id"],
                         "edge_type": "holding",
-                        "ownership_value": float(pol["total_ownership"])
-                        if pol["total_ownership"]
+                        "ownership_value": float(pol["holding_value"])
+                        if pol["holding_value"]
                         else None,
                     }
                 )

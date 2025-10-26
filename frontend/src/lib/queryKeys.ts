@@ -4,7 +4,7 @@ export const queryKeys = {
     stats: () => ['dashboard', 'stats'] as const,
   },
   visual: {
-    byId: (id: string) => ['visual', id] as const,
+    byId: (id: string, type: string) => ['visual', type, id] as const,
   },
   search: {
     byQuery: (q: string) => ['search', q] as const,

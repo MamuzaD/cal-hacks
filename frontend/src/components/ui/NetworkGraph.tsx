@@ -6,7 +6,7 @@ interface NetworkGraphProps {
   nodes: NodeType[]
   edges: EdgeType[]
   onNodeSelect?: (node: NodeType) => void
-  selectedNodeId?: string
+  selectedNodeId?: number
 }
 
 interface SimulationNode extends NodeType {
@@ -60,7 +60,7 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
           type: combinedType,
           isBidirectional: true,
           originalTypes: types,
-          value: (edge.value || 0) + (reverseEdge.value || 0)
+          holding_value: (edge.holding_value || 0) + (reverseEdge.holding_value || 0)
         })
         
         processedPairs.add(pairKey)
@@ -181,7 +181,7 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
     // Add labels
     node
       .append('text')
-      .text((d) => d.label)
+      .text((d) => d.name)
       .attr('font-size', 12)
       .attr('dx', 20)
       .attr('dy', 5)
