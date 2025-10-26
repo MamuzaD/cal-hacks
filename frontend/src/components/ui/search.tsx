@@ -35,30 +35,22 @@ export function SearchBar({
     try {
       setIsSearching(true)
       
-      // Mock data for demo purposes
-      const mockSearchResults: Record<string, string> = {
-        'pfizer': 'pfizer',
-        'apple': 'apple',
-        'tesla': 'tesla',
-        'openai': 'openai',
-        'jpmorgan': 'jpmorgan',
-        'blackrock': 'blackrock',
-        'nvidia': 'nvidia',
+      // Call the real API
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`)
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
       }
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800))
+      const data = await response.json()
       
-      const normalizedTerm = searchTerm.toLowerCase().trim()
-      const id = mockSearchResults[normalizedTerm]
+      // Handle the search result based on detected type
+      const resultId = data.detected_type === 'company' 
+        ? data.result.company.toLowerCase()
+        : data.result.politician_name.toLowerCase().replace(/\s+/g, '-')
       
-      if (id) {
-        // Found in database, navigate to visual
-        navigate({ to: '/visual/$id', params: { id } })
-      } else {
-        // Not found, navigate to showcase
-        navigate({ to: '/showcase' })
-      }
+      // Navigate to visual page
+      navigate({ to: '/visual/$id', params: { id: resultId } })
     } catch (error) {
       console.error('Search error:', error)
       // On error, navigate to showcase

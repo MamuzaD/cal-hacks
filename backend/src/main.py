@@ -84,10 +84,7 @@ class GeneralSearchResponse(BaseModel):
     reasoning: str
     result: Union[PersonSearchResponse, CompanySearchResponse]
 
-# Root route for API docs
-@app.get("/")
-async def api_root():
-    return {"message": "Web Weyes API", "docs": "/docs", "api": "/api"}
+# Root route removed - catch-all will serve React app at /
 
 # Separate functions for database operations
 async def search_company_in_db(query: str, db: asyncpg.Connection) -> CompanySearchResponse:
