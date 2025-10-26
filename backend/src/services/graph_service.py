@@ -89,6 +89,7 @@ async def get_entity_graph(
             SELECT DISTINCT company as name, ticker
             FROM holdings
             WHERE company = $1 OR ticker = $1
+               OR substring(md5(company), 1, 8) = $1
             LIMIT 1
             """,
             entity_id,
