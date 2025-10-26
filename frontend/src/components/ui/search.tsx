@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '~/components/ui/button'
@@ -20,6 +20,8 @@ interface SearchResponse {
   reasoning: string
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 export function SearchBar({
   placeholder = 'Search...',
   buttonText = 'Explore',
@@ -29,68 +31,100 @@ export function SearchBar({
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  
-  const { isPending, data } = useQuery({
-    queryKey: queryKeys.search.byQuery(searchTerm!),
+  const [uiError, setUiError] = useState<string | null>(null)
+
+  const { data, error, isFetching } = useQuery<SearchResponse>({
+    queryKey: searchTerm
+      ? queryKeys.search.byQuery(searchTerm)
+      : ['search', 'disabled'],
     queryFn: async () => {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/search?q=${encodeURIComponent(searchTerm!)}`
-      )
-      if (!res.ok) {
-        if (res.status === 404) {
-          setError(`No results found for "${searchTerm}"`)
-        } else {
-          setError('Search failed. Please try again.')
-        }
-        throw new Error('Search failed')
+      if (!searchTerm) {
+        throw new Error('Missing search term')
       }
-      setError(null)
-      return res.json() as Promise<SearchResponse>
+      const url = `${API_URL}/api/search?q=${encodeURIComponent(searchTerm)}`
+      const res = await fetch(url)
+      if (!res.ok) {
+        const err = new Error(
+          `Search failed with status ${res.status}`,
+        ) as Error & {
+          status?: number
+        }
+        err.status = res.status
+        throw err
+      }
+      const json = (await res.json()) as SearchResponse
+      return json
     },
     enabled: !!searchTerm,
     retry: false,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   })
 
-  // Handle navigation when search completes
+  // isPending should only be true when we actually have a searchTerm and the query is fetching
+  const isPending = searchTerm ? isFetching : false
+
+  // Derive UI error from query error
   useEffect(() => {
-    if (data) {
-      // Navigate to visual based on result
+    if (!searchTerm) return
+    if (error) {
+      const status = (error as any)?.status as number | undefined
+      if (status === 404) {
+        setUiError(`No results found for "${searchTerm}"`)
+      } else {
+        setUiError('Search failed. Please try again.')
+      }
+    } else {
+      setUiError(null)
+    }
+  }, [error, searchTerm])
+
+  // Navigate on success and reset after a delay
+  useEffect(() => {
+    if (data && searchTerm) {
       navigate({ to: '/visual/$id', params: { id: data.id } })
-      setSearchTerm(null) // Clear search term after navigation
+      // Reset searchTerm after navigation to allow fresh searches
+      const timer = setTimeout(() => {
+        setSearchTerm(null)
+        setQuery('')
+        setUiError(null)
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [data, navigate])
-  
-  const handleSearch = async () => {
-    if (!query.trim()) return
-    
-    setError(null) // Clear any previous errors
-    if (onSearch) {
-      onSearch(query)
-    }
-    
-    setSearchTerm(query.trim())
-  }
+  }, [data, searchTerm, navigate])
+
+
+  const triggerSearch = useCallback(
+    (term: string) => {
+      const trimmed = term.trim()
+      if (!trimmed) return
+      setUiError(null)
+      onSearch?.(trimmed)
+      setSearchTerm(trimmed)
+    },
+    [onSearch],
+  )
+
+  const handleSearch = () => triggerSearch(query)
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSearch()
+      triggerSearch(query)
     }
   }
 
   const handleQuickStartClick = (example: string) => {
     setQuery(example)
-    setError(null) // Clear any previous errors
-    if (onSearch) {
-      onSearch(example)
-    }
-    setSearchTerm(example)
+    setUiError(null)
+    onSearch?.(example)
+    setSearchTerm(example.trim())
   }
 
   if (variant === 'compact') {
     return (
       <div className="relative group w-full max-w-md">
-        <div className="relative flex items-center glass rounded-xl px-4 py-2 border border-black/10 dark:borderhover:border-primary/30 transition-all">
+        <div className="relative flex items-center glass rounded-xl px-4 py-2 border border-black/10 dark:hover:border-primary/30 transition-all">
           <Search className="w-4 h-4 text-primary mr-2" />
           <input
             type="text"
@@ -100,18 +134,29 @@ export function SearchBar({
             onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent text-foreground placeholder-muted-foreground outline-none text-sm font-light"
           />
+          <Button
+            onClick={handleSearch}
+            disabled={isPending}
+            variant="ghost"
+            size="sm"
+            className="ml-2"
+          >
+            {isPending ? '...' : 'Go'}
+          </Button>
         </div>
+        {uiError && <p className="mt-2 text-xs text-red-500">{uiError}</p>}
       </div>
     )
   }
 
   const { hero } = landingPage
+
   return (
     <div className="flex flex-col items-center mt-16 w-full">
       <div className="max-w-2xl w-full">
         <div className="relative group">
           <div
-            className={`relative flex items-center glass-strong rounded-2xl px-6 py-5 border transition-all duration-500 bg-gradient-to-r from-white/5 via-white/8 to-white/5 ${
+            className={`relative flex items-center glass-strong rounded-2xl px-6 py-5 border transition-all duration-500 bg-linear-to-r from-white/5 via-white/8 to-white/5 ${
               isPending
                 ? 'border-primary scale-[1.02] animate-pulse-border shadow-lg'
                 : 'border-primary/10 hover:border-primary/30'
@@ -129,7 +174,7 @@ export function SearchBar({
             <Button
               onClick={handleSearch}
               disabled={isPending}
-              className={`cursor-pointer ml-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-background font-semibold transition-all ${
+              className={`cursor-pointer ml-4 bg-linear-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-background font-semibold transition-all ${
                 isPending ? 'shadow-xl scale-105' : 'shadow-lg hover:shadow-xl'
               }`}
             >
@@ -139,10 +184,9 @@ export function SearchBar({
         </div>
       </div>
 
-      {/* Error message */}
-      {error && (
+      {uiError && (
         <div className="mt-4 max-w-2xl w-full px-6 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-sm text-red-500">{uiError}</p>
         </div>
       )}
 

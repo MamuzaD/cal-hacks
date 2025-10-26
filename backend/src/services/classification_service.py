@@ -44,6 +44,7 @@ Respond with valid JSON only:
 """
 
     try:
+        logger.info(f"Using Claude to classify: '{search_term}'")
         response = client.messages.create(
             model="claude-3-haiku-20240307",
             max_tokens=200,
@@ -51,6 +52,7 @@ Respond with valid JSON only:
         )
 
         result = json.loads(response.content[0].text)
+        logger.info(f"Claude classification result: {result}")
 
         # Validate response
         if result.get("type") not in ("person", "company"):
@@ -62,4 +64,7 @@ Respond with valid JSON only:
 
     except Exception as e:
         logger.warning(f"Claude classification failed: {e}")
-        return simple_classify(search_term)
+        logger.info(f"Falling back to simple classification for: '{search_term}'")
+        fallback_result = simple_classify(search_term)
+        logger.info(f"Simple classification result: {fallback_result}")
+        return fallback_result

@@ -31,8 +31,8 @@ def root():
 
 
 # Include routers
-app.include_router(search.router, prefix="/search", tags=["search"])
-app.include_router(graph.router, prefix="/graph", tags=["graph"])
-app.include_router(person.router, prefix="/person", tags=["person"])
-app.include_router(company.router, prefix="/company", tags=["company"])
+app.include_router(search.router, prefix="/api/search", tags=["search"])
+app.include_router(graph.router, prefix="/api/graph", tags=["graph"])
+app.include_router(person.router, prefix="/api/person", tags=["person"])
+app.include_router(company.router, prefix="/api/company", tags=["company"])
 
