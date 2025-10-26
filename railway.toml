@@ -1,10 +1,9 @@
 [build]
-builder = "NIXPACKS"
-watchPatterns = [
-  "backend/**",
-  "frontend/**"
-]
+watchPatterns = ["backend/**", "frontend/**"]
 buildCommand = "bash build.sh"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs_20", "python311", "nodePackages.pnpm"]
 
 [deploy]
 startCommand = "bash start.sh"
