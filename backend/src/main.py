@@ -4,12 +4,18 @@ from pydantic import BaseModel
 from datetime import date
 import asyncpg
 import os
+import json
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+import anthropic
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:testpassword@localhost:5432/railway")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 db_pool = None
+
+# Initialize Anthropic client if API key is available
+anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -62,24 +68,25 @@ class PersonSearchResponse(BaseModel):
     total_ownership_value: float
     company_holdings: List[CompanyHolding]
 
+class GeneralSearchResponse(BaseModel):
+    search_term: str
+    detected_type: str  # "person" or "company"
+    confidence: float
+    reasoning: str
+    result: Union[PersonSearchResponse, CompanySearchResponse]
+
 @app.get("/")
 def get_root():
     return {"message": "Welcome to Web Weyes!"}
 
-# pull up a company and see what politicians have holdings in it
-@app.get("/search/company", response_model=CompanySearchResponse)
-async def company_search(
-    q: str = Query(..., description="Company name or ticker to search for"),
-    db: asyncpg.Connection = Depends(get_db)
-):
+# Separate functions for database operations
+async def search_company_in_db(query: str, db: asyncpg.Connection) -> CompanySearchResponse:
     """
-    Search for a company and return politicians who have financial holdings in it.
-    Returns ownership amounts and politician details.
+    Search for a company in the database and return politicians who have holdings.
     """
     try:
         # SQL query to find all politicians with holdings in the specified company
-        # Using JOIN between politicians and holdings tables
-        query = """
+        sql_query = """
         SELECT 
             p.id as politician_id,
             p.name as politician_name,
@@ -96,15 +103,13 @@ async def company_search(
         ORDER BY h.total_ownership DESC NULLS LAST, p.name ASC
         """
         
-        # Execute query with case-insensitive search
-        search_pattern = f"%{q}%"
-        rows = await db.fetch(query, search_pattern, search_pattern)
+        search_pattern = f"%{query}%"
+        rows = await db.fetch(sql_query, search_pattern, search_pattern)
         
         if not rows:
-            # Return empty result if no matches found
             return CompanySearchResponse(
-                company=q.title(),
-                ticker=q.upper() if len(q) <= 5 else None,
+                company=query.title(),
+                ticker=query.upper() if len(query) <= 5 else None,
                 total_politicians=0,
                 total_ownership_value=0.00,
                 politician_holdings=[]
@@ -113,7 +118,7 @@ async def company_search(
         # Convert database rows to Pydantic models
         politician_holdings = []
         total_ownership_value = 0.0
-        company_name = rows[0]['company']  # Use actual company name from DB
+        company_name = rows[0]['company']
         ticker = rows[0]['ticker']
         
         for row in rows:
@@ -128,7 +133,6 @@ async def company_search(
             )
             politician_holdings.append(holding)
             
-            # Sum up total ownership value
             if row['total_ownership']:
                 total_ownership_value += float(row['total_ownership'])
         
@@ -143,18 +147,12 @@ async def company_search(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-# pull up a person and see their stock holdings and company ownership
-@app.get("/search/person", response_model=PersonSearchResponse)
-async def person_search(
-    q: str = Query(..., description="Politician name to search for"),
-    db: asyncpg.Connection = Depends(get_db)
-):
+async def search_person_in_db(query: str, db: asyncpg.Connection) -> PersonSearchResponse:
     """
-    Search for a politician and return their financial holdings and company ownership.
-    Returns all companies they have ownership stakes in.
+    Search for a politician in the database and return their holdings.
     """
     try:
-        # First, get the politician's basic info
+        # Get politician's basic info
         politician_info_query = """
         SELECT 
             id,
@@ -168,14 +166,13 @@ async def person_search(
         LIMIT 1
         """
         
-        search_pattern = f"%{q}%"
+        search_pattern = f"%{query}%"
         politician_info = await db.fetchrow(politician_info_query, search_pattern)
         
         if not politician_info:
-            # Return empty result if politician not found
             return PersonSearchResponse(
                 politician_id=0,
-                politician_name=q.title(),
+                politician_name=query.title(),
                 position="Unknown",
                 state="Unknown",
                 party_affiliation="Other",
@@ -185,7 +182,7 @@ async def person_search(
                 company_holdings=[]
             )
         
-        # Get all holdings for this politician using JOIN
+        # Get all holdings for this politician
         holdings_query = """
         SELECT 
             h.id as holding_id,
@@ -212,7 +209,6 @@ async def person_search(
             )
             company_holdings.append(holding)
             
-            # Sum up total ownership value
             if row['total_ownership']:
                 total_ownership_value += float(row['total_ownership'])
         
@@ -230,3 +226,116 @@ async def person_search(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+async def classify_search_term(search_term: str) -> dict:
+    """
+    Use Claude/Anthropic to classify if a search term is a person or company.
+    """
+    if not anthropic_client:
+        # Fallback logic if Anthropic is not available
+        # Simple heuristics: if it looks like a person name (2-3 words, capitalized)
+        words = search_term.strip().split()
+        if len(words) >= 2 and len(words) <= 3 and all(word[0].isupper() for word in words if word):
+            return {
+                "type": "person",
+                "confidence": 0.6,
+                "reasoning": "Fallback heuristic: appears to be a person name (2-3 capitalized words)"
+            }
+        else:
+            return {
+                "type": "company",
+                "confidence": 0.6,
+                "reasoning": "Fallback heuristic: does not match person name pattern, assuming company"
+            }
+    
+    try:
+        prompt = f"""
+        Analyze this search term and determine if it refers to a PERSON (politician/individual) or a COMPANY (corporation/organization).
+
+        Search term: "{search_term}"
+
+        Consider:
+        - Person names typically have 2-3 words (first, middle, last name)
+        - Company names often include words like "Inc", "Corp", "LLC", "Group", "Systems", etc.
+        - Stock tickers are usually 3-5 uppercase letters
+        - Political figures often have titles or are known by partial names
+
+        Respond with valid JSON only:
+        {{
+            "type": "person" or "company",
+            "confidence": 0.0-1.0,
+            "reasoning": "brief explanation of your decision"
+        }}
+        """
+        
+        response = anthropic_client.messages.create(
+            model="claude-3-haiku-20240307",  # Using Haiku for faster/cheaper classification
+            max_tokens=200,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        result = json.loads(response.content[0].text)
+        return result
+        
+    except Exception as e:
+        # Fallback if Claude fails
+        return {
+            "type": "company",
+            "confidence": 0.3,
+            "reasoning": f"Claude classification failed ({str(e)}), defaulting to company"
+        }
+
+# General search endpoint
+@app.get("/search", response_model=GeneralSearchResponse)
+async def general_search(
+    q: str = Query(..., description="Search term (person or company)"),
+    db: asyncpg.Connection = Depends(get_db)
+):
+    """
+    General search endpoint that uses AI to determine if the query is for a person or company,
+    then calls the appropriate search function.
+    """
+    try:
+        # Classify the search term using Claude
+        classification = await classify_search_term(q)
+        
+        # Call the appropriate search function based on classification
+        if classification["type"] == "person":
+            result = await search_person_in_db(q, db)
+        else:  # company
+            result = await search_company_in_db(q, db)
+        
+        return GeneralSearchResponse(
+            search_term=q,
+            detected_type=classification["type"],
+            confidence=classification["confidence"],
+            reasoning=classification["reasoning"],
+            result=result
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+
+# Specific endpoint for company search (calls the separate function)
+@app.get("/search/company", response_model=CompanySearchResponse)
+async def company_search(
+    q: str = Query(..., description="Company name or ticker to search for"),
+    db: asyncpg.Connection = Depends(get_db)
+):
+    """
+    Search for a company and return politicians who have financial holdings in it.
+    Returns ownership amounts and politician details.
+    """
+    return await search_company_in_db(q, db)
+
+# Specific endpoint for person search (calls the separate function)
+@app.get("/search/person", response_model=PersonSearchResponse)
+async def person_search(
+    q: str = Query(..., description="Politician name to search for"),
+    db: asyncpg.Connection = Depends(get_db)
+):
+    """
+    Search for a politician and return their financial holdings and company ownership.
+    Returns all companies they have ownership stakes in.
+    """
+    return await search_person_in_db(q, db)
