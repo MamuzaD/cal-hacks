@@ -15,6 +15,12 @@ function VisualPage() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [showAll, setShowAll] = useState(false)
 
+  // Reset state when route params change (navigate to different entity)
+  useEffect(() => {
+    setSelectedNode(null)
+    setShowAll(false)
+  }, [type, id])
+
   // Filter to top holdings by default (top 25 by value)
   const filteredData = data
     ? (() => {
