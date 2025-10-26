@@ -7,7 +7,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
-import { Layout } from '../components/layout/Layout'
+import { Layout } from '../components/layout'
 
 import type { QueryClient } from '@tanstack/react-query'
 

@@ -1,14 +1,23 @@
 import { Search } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '~/components/ui/button'
 import { landingPage } from '~/constants'
+import { queryKeys } from '~/lib/queryKeys'
 
 interface SearchBarProps {
   placeholder?: string
   buttonText?: string
   variant?: 'hero' | 'compact'
   onSearch?: (query: string) => void
+}
+
+interface SearchResponse {
+  id: string
+  type: 'person' | 'company'
+  confidence: number
+  reasoning: string
 }
 
 export function SearchBar({
@@ -19,63 +28,48 @@ export function SearchBar({
 }: SearchBarProps) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [isQuickStartUsed, setIsQuickStartUsed] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
+  const [searchTerm, setSearchTerm] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  
+  const { isPending, data } = useQuery({
+    queryKey: queryKeys.search.byQuery(searchTerm!),
+    queryFn: async () => {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/search?q=${encodeURIComponent(searchTerm!)}`
+      )
+      if (!res.ok) {
+        if (res.status === 404) {
+          setError(`No results found for "${searchTerm}"`)
+        } else {
+          setError('Search failed. Please try again.')
+        }
+        throw new Error('Search failed')
+      }
+      setError(null)
+      return res.json() as Promise<SearchResponse>
+    },
+    enabled: !!searchTerm,
+    retry: false,
+  })
 
+  // Handle navigation when search completes
   useEffect(() => {
-    if (isQuickStartUsed) {
-      const timer = setTimeout(() => {
-        setIsQuickStartUsed(false)
-      }, 1000)
-      return () => clearTimeout(timer)
+    if (data) {
+      // Navigate to visual based on result
+      navigate({ to: '/visual/$id', params: { id: data.id } })
+      setSearchTerm(null) // Clear search term after navigation
     }
-  }, [isQuickStartUsed])
-
-  const searchBackend = async (searchTerm: string) => {
-    try {
-      setIsSearching(true)
-      
-      // Mock data for demo purposes
-      const mockSearchResults: Record<string, string> = {
-        'pfizer': 'pfizer',
-        'apple': 'apple',
-        'tesla': 'tesla',
-        'openai': 'openai',
-        'jpmorgan': 'jpmorgan',
-        'blackrock': 'blackrock',
-        'nvidia': 'nvidia',
-      }
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      const normalizedTerm = searchTerm.toLowerCase().trim()
-      const id = mockSearchResults[normalizedTerm]
-      
-      if (id) {
-        // Found in database, navigate to visual
-        navigate({ to: '/visual/$id', params: { id } })
-      } else {
-        // Not found, navigate to showcase
-        navigate({ to: '/showcase' })
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-      // On error, navigate to showcase
-      navigate({ to: '/showcase' })
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
+  }, [data, navigate])
+  
   const handleSearch = async () => {
     if (!query.trim()) return
     
+    setError(null) // Clear any previous errors
     if (onSearch) {
       onSearch(query)
     }
     
-    await searchBackend(query)
+    setSearchTerm(query.trim())
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -84,16 +78,13 @@ export function SearchBar({
     }
   }
 
-  const handleQuickStartClick = async (example: string) => {
+  const handleQuickStartClick = (example: string) => {
     setQuery(example)
-    setIsQuickStartUsed(true)
-    // Auto-trigger search after a brief delay
-    setTimeout(async () => {
-      if (onSearch) {
-        onSearch(example)
-      }
-      await searchBackend(example)
-    }, 300)
+    setError(null) // Clear any previous errors
+    if (onSearch) {
+      onSearch(example)
+    }
+    setSearchTerm(example)
   }
 
   if (variant === 'compact') {
@@ -121,7 +112,7 @@ export function SearchBar({
         <div className="relative group">
           <div
             className={`relative flex items-center glass-strong rounded-2xl px-6 py-5 border transition-all duration-500 bg-gradient-to-r from-white/5 via-white/8 to-white/5 ${
-              isQuickStartUsed
+              isPending
                 ? 'border-primary scale-[1.02] animate-pulse-border shadow-lg'
                 : 'border-primary/10 hover:border-primary/30'
             }`}
@@ -137,16 +128,23 @@ export function SearchBar({
             />
             <Button
               onClick={handleSearch}
-              disabled={isSearching}
+              disabled={isPending}
               className={`cursor-pointer ml-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-background font-semibold transition-all ${
-                isQuickStartUsed ? 'shadow-xl scale-105' : 'shadow-lg hover:shadow-xl'
+                isPending ? 'shadow-xl scale-105' : 'shadow-lg hover:shadow-xl'
               }`}
             >
-              {isSearching ? 'Searching...' : buttonText}
+              {isPending ? 'Searching...' : buttonText}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="mt-4 max-w-2xl w-full px-6 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      )}
 
       <div className="flex items-center justify-start gap-3 mt-6 flex-wrap max-w-2xl">
         <span className="text-sm text-muted-foreground font-medium">

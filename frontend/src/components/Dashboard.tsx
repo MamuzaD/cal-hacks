@@ -2,20 +2,19 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, Users, Building2, DollarSign } from 'lucide-react';
+import { queryKeys } from '~/lib/queryKeys';
 
-// API functions
-const fetchDashboardStats = async () => {
-  // You'll replace these with actual API calls to your backend
-  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/dashboard/stats`);
-  if (!response.ok) throw new Error('Failed to fetch stats');
-  return response.json();
-};
+// API is centralized in lib/api.ts
 
 const Dashboard: React.FC = () => {
   // Use React Query for data fetching with auto-refresh
   const { data: stats, isLoading, error } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: fetchDashboardStats,
+    queryKey: queryKeys.dashboard.stats(),
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/dashboard/stats`)
+      if (!res.ok) throw new Error('Failed to fetch stats')
+      return res.json()
+    },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 

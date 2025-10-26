@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GraphData } from '~/lib/mockData'
 import { mockData } from '~/lib/mockData'
+import { queryKeys } from '~/lib/queryKeys'
 
 async function fetchVisualData(id: string): Promise<GraphData> {
   // Simulate API delay
@@ -18,7 +19,7 @@ async function fetchVisualData(id: string): Promise<GraphData> {
 
 export function useVisualData(id: string) {
   return useQuery({
-    queryKey: ['visual', id],
+    queryKey: queryKeys.visual.byId(id),
     queryFn: () => fetchVisualData(id),
     enabled: !!id,
     staleTime: Infinity, // Mock data never goes stale
