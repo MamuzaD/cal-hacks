@@ -32,10 +32,10 @@ export function HeroGraph() {
     const checkScreenSize = () => {
       setShouldRender(window.innerWidth >= 768) // md breakpoint is 768px
     }
-    
+
     checkScreenSize()
     window.addEventListener('resize', checkScreenSize)
-    
+
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
@@ -262,7 +262,12 @@ export function HeroGraph() {
       .attr('font-weight', '500')
       .attr('fill', isDarkMode ? '#E8EAED' : '#1a1a1a')
       .attr('pointer-events', 'none')
-      .style('filter', isDarkMode ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))' : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))')
+      .style(
+        'filter',
+        isDarkMode
+          ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))'
+          : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))',
+      )
       .text((d) => d.label)
 
     // Add drag behavior
@@ -336,7 +341,9 @@ export function HeroGraph() {
           .attr('r', d.size)
           .attr('stroke-width', 1.5)
 
-        link.style('stroke-opacity', 0.4).style('stroke-width', (l) => l.strength * 2)
+        link
+          .style('stroke-opacity', 0.4)
+          .style('stroke-width', (l) => l.strength * 2)
       })
 
     // Animate particles using requestAnimationFrame
@@ -386,23 +393,28 @@ export function HeroGraph() {
       clearTimeout(timer)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [shouldRender, isDarkMode])
+  }, [shouldRender])
 
   // Update label colors when theme changes
   useEffect(() => {
     if (!svgRef.current || !shouldRender) return
-    
+
     d3.select(svgRef.current)
       .selectAll('text.node-label')
       .attr('fill', isDarkMode ? '#E8EAED' : '#1a1a1a')
-      .style('filter', isDarkMode ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))' : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))')
+      .style(
+        'filter',
+        isDarkMode
+          ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))'
+          : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))',
+      )
   }, [isDarkMode, shouldRender])
 
   if (!shouldRender) return null
 
   return (
-    <div 
-      className="relative w-full h-[400px] overflow-visible flex items-center justify-center" 
+    <div
+      className="relative w-full h-[400px] overflow-visible flex items-center justify-center"
       onWheel={(e) => e.preventDefault()}
     >
       {/* Gradient background - centered behind the SVG graph */}

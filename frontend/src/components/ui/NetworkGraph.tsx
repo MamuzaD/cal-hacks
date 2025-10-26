@@ -22,7 +22,12 @@ interface ProcessedEdge extends EdgeType {
   originalTypes?: string[]
 }
 
-export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: NetworkGraphProps) {
+export function NetworkGraph({
+  nodes,
+  edges,
+  onNodeSelect,
+  selectedNodeId,
+}: NetworkGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
@@ -36,7 +41,10 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
 
     const width = containerRef.current.clientWidth
     const height = containerRef.current.clientHeight
-    const svg = d3.select(svgRef.current).attr('width', width).attr('height', height)
+    const svg = d3
+      .select(svgRef.current)
+      .attr('width', width)
+      .attr('height', height)
 
     // Process edges to detect and merge bidirectional relationships
     const processedEdges: ProcessedEdge[] = []
@@ -44,27 +52,27 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
 
     edges.forEach((edge) => {
       const pairKey = [edge.source, edge.target].sort().join('-')
-      
+
       if (processedPairs.has(pairKey)) return
 
       // Check if there's a reverse edge
       const reverseEdge = edges.find(
-        (e) => e.source === edge.target && e.target === edge.source
+        (e) => e.source === edge.target && e.target === edge.source,
       )
 
       if (reverseEdge) {
         // Bidirectional edge found - combine types
         const types = [edge.type, reverseEdge.type].sort()
         const combinedType = types.join(' + ')
-        
+
         processedEdges.push({
           ...edge,
           type: combinedType,
           isBidirectional: true,
           originalTypes: types,
-          value: (edge.value || 0) + (reverseEdge.value || 0)
+          value: (edge.value || 0) + (reverseEdge.value || 0),
         })
-        
+
         processedPairs.add(pairKey)
       } else {
         // Unidirectional edge
@@ -75,7 +83,13 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
     // Create simulation
     const simulation = d3
       .forceSimulation(nodes as SimulationNode[])
-      .force('link', d3.forceLink(processedEdges).id((d: any) => d.id).distance(100))
+      .force(
+        'link',
+        d3
+          .forceLink(processedEdges)
+          .id((d: any) => d.id)
+          .distance(100),
+      )
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(40))
@@ -86,18 +100,30 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       if (type === 'campaign-contribution') return '#f87171' // red
       if (type === 'lobbying') return '#facc15' // yellow
       if (type === 'investment') return '#60a5fa' // blue
-      
+
       // Combined types - blend colors or use distinct colors
       if (type.includes(' + ')) {
-        if (type.includes('stock-holding') && type.includes('lobbying')) return '#86efac' // light green
-        if (type.includes('stock-holding') && type.includes('campaign-contribution')) return '#fb923c' // orange
-        if (type.includes('lobbying') && type.includes('campaign-contribution')) return '#fcd34d' // gold
-        if (type.includes('stock-holding') && type.includes('investment')) return '#7dd3fc' // sky blue
-        if (type.includes('lobbying') && type.includes('investment')) return '#a78bfa' // purple
-        if (type.includes('campaign-contribution') && type.includes('investment')) return '#f472b6' // pink
+        if (type.includes('stock-holding') && type.includes('lobbying'))
+          return '#86efac' // light green
+        if (
+          type.includes('stock-holding') &&
+          type.includes('campaign-contribution')
+        )
+          return '#fb923c' // orange
+        if (type.includes('lobbying') && type.includes('campaign-contribution'))
+          return '#fcd34d' // gold
+        if (type.includes('stock-holding') && type.includes('investment'))
+          return '#7dd3fc' // sky blue
+        if (type.includes('lobbying') && type.includes('investment'))
+          return '#a78bfa' // purple
+        if (
+          type.includes('campaign-contribution') &&
+          type.includes('investment')
+        )
+          return '#f472b6' // pink
         return '#c084fc' // default purple for other combinations
       }
-      
+
       return '#60a5fa' // default blue
     }
 
@@ -110,7 +136,7 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
     // Create markers for arrowheads (both start and end)
     allEdgeTypes.forEach((edgeType) => {
       const color = getEdgeColor(edgeType)
-      
+
       // End marker (normal arrow)
       defs
         .append('marker')
@@ -151,9 +177,14 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       .attr('stroke-width', 2)
       .attr('stroke', (d: ProcessedEdge) => getEdgeColor(d.type))
       .attr('opacity', 0.6)
-      .attr('marker-end', (d: ProcessedEdge) => `url(#arrow-end-${d.type.replace(/\s+/g, '-')})`)
-      .attr('marker-start', (d: ProcessedEdge) => 
-        d.isBidirectional ? `url(#arrow-start-${d.type.replace(/\s+/g, '-')})` : null
+      .attr(
+        'marker-end',
+        (d: ProcessedEdge) => `url(#arrow-end-${d.type.replace(/\s+/g, '-')})`,
+      )
+      .attr('marker-start', (d: ProcessedEdge) =>
+        d.isBidirectional
+          ? `url(#arrow-start-${d.type.replace(/\s+/g, '-')})`
+          : null,
       )
 
     // Create nodes
@@ -210,8 +241,14 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
 
       // Update glow position for selected node
       if (glowRef.current && selectedNodeId) {
-        const selectedNodeData = nodes.find((n) => n.id === selectedNodeId) as SimulationNode
-        if (selectedNodeData && selectedNodeData.x !== undefined && selectedNodeData.y !== undefined) {
+        const selectedNodeData = nodes.find(
+          (n) => n.id === selectedNodeId,
+        ) as SimulationNode
+        if (
+          selectedNodeData &&
+          selectedNodeData.x !== undefined &&
+          selectedNodeData.y !== undefined
+        ) {
           glowRef.current.style.left = `${selectedNodeData.x}px`
           glowRef.current.style.top = `${selectedNodeData.y}px`
           glowRef.current.style.opacity = '1'
@@ -251,31 +288,36 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       simulation.stop()
       d3.select(svgRef.current).selectAll('*').remove()
     }
-  }, [nodes, edges, onNodeSelect, selectedNodeId, isDarkMode])
+  }, [nodes, edges, onNodeSelect, selectedNodeId])
 
   // Update label colors when theme changes
   useEffect(() => {
     if (!svgRef.current) return
-    
+
     d3.select(svgRef.current)
       .selectAll('text')
       .attr('fill', isDarkMode ? '#fff' : '#000')
   }, [isDarkMode])
 
   return (
-    <div ref={containerRef} className="relative w-full h-full rounded-lg overflow-hidden border border-primary/20">
+    <div
+      ref={containerRef}
+      className="relative w-full h-full rounded-lg overflow-hidden border border-primary/20"
+    >
       {/* Gradient background - centered behind the SVG graph */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[875px] h-[700px] rounded-full bg-primary opacity-30 dark:opacity-19 blur-[110px] pointer-events-none" />
-      
+
       {/* Glow effect for selected node */}
-      <div 
+      <div
         ref={glowRef}
-        className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-[50px] h-[50px] rounded-full bg-amber-400 opacity-0 blur-[10px] pointer-events-none transition-opacity duration-300 z-0"
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-[50px] h-[50px] rounded-full bg-amber-400 opacity-0 blur-[10px] pointer-events-none transition-opacity duration-300 z-0"
       />
-      
+
       {/* SVG Graph */}
-      <svg ref={svgRef} className="relative z-10 w-full h-full transition-opacity duration-1000 opacity-100" />
+      <svg
+        ref={svgRef}
+        className="relative z-10 w-full h-full transition-opacity duration-1000 opacity-100"
+      />
     </div>
   )
 }
-
