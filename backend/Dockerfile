@@ -16,11 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps first for better caching
-COPY backend/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy application code
-COPY backend/ ./
+COPY . ./
 
 # Expose port (Railway sets $PORT at runtime)
 EXPOSE 8000

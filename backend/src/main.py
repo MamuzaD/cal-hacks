@@ -1,5 +1,5 @@
 from typing import Union, List, Optional
-from fastapi import FastAPI, Query, HTTPException, Depends
+from fastapi import FastAPI, Query, HTTPException, Depends, APIRouter
 from pydantic import BaseModel
 from datetime import date
 import asyncpg
@@ -9,6 +9,8 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import anthropic
 import logging
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -34,6 +36,20 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# API router with /api prefix
+api_router = APIRouter(prefix="/api")
+
+# Frontend build directory (Vite output)
+FRONTEND_DIST = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+)
+
+# Serve built assets (e.g. /assets/*) directly
+if os.path.isdir(FRONTEND_DIST):
+    assets_dir = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
 async def get_db():
     async with db_pool.acquire() as connection:
@@ -79,7 +95,7 @@ class GeneralSearchResponse(BaseModel):
     reasoning: str
     result: Union[PersonSearchResponse, CompanySearchResponse]
 
-@app.get("/")
+@api_router.get("/")
 def get_root():
     return {"message": "Welcome to Web Weyes!"}
 
@@ -299,7 +315,7 @@ async def classify_search_term(search_term: str) -> dict:
         }
 
 # General search endpoint
-@app.get("/search", response_model=GeneralSearchResponse)
+@api_router.get("/search", response_model=GeneralSearchResponse)
 async def general_search(
     q: str = Query(..., description="Search term (person or company)"),
     db: asyncpg.Connection = Depends(get_db)
@@ -331,7 +347,7 @@ async def general_search(
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 # Specific endpoint for company search (calls the separate function)
-@app.get("/search/company", response_model=CompanySearchResponse)
+@api_router.get("/search/company", response_model=CompanySearchResponse)
 async def company_search(
     q: str = Query(..., description="Company name or ticker to search for"),
     db: asyncpg.Connection = Depends(get_db)
@@ -343,7 +359,7 @@ async def company_search(
     return await search_company_in_db(q, db)
 
 # Specific endpoint for person search (calls the separate function)
-@app.get("/search/person", response_model=PersonSearchResponse)
+@api_router.get("/search/person", response_model=PersonSearchResponse)
 async def person_search(
     q: str = Query(..., description="Politician name to search for"),
     db: asyncpg.Connection = Depends(get_db)
@@ -353,3 +369,21 @@ async def person_search(
     Returns all companies they have ownership stakes in.
     """
     return await search_person_in_db(q, db)
+
+# Mount the API router under /api
+app.include_router(api_router)
+
+# Serve SPA index and fallback for non-API routes
+if os.path.isdir(FRONTEND_DIST):
+    @app.get("/", include_in_schema=False)
+    async def serve_spa_index():
+        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        candidate = os.path.join(FRONTEND_DIST, full_path)
+        if os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
