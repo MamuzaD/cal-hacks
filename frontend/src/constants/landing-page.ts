@@ -12,7 +12,7 @@ export const landingPage = {
     subtitleHighlight:
       'campaign finance, lobbying activities, and stock holdings',
     searchPlaceholder:
-      "Try 'Pfizer', 'Tesla', 'BlackRock', or a politician's name…",
+      "Search for a company or politician…",
     searchButton: 'Explore',
     exampleSearches: [
       { label: 'Pfizer', value: 'PFE' },
