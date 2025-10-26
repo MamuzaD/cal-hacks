@@ -13,13 +13,46 @@ function VisualPage() {
   const { type, id } = Route.useParams()
   const { data, isLoading, isError } = useVisualData(id, type)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  
+  // Filter to top holdings by default (top 25 by value)
+  const filteredData = data ? (() => {
+    if (showAll || data.edges.length <= 50) {
+      return data
+    }
+    
+    // Sort edges by holding_value (descending) and take top 25
+    const sortedEdges = [...data.edges].sort((a, b) => {
+      const valA = a.holding_value || 0
+      const valB = b.holding_value || 0
+      return valB - valA
+    }).slice(0, 25)
+    
+    // Get node IDs that are connected by these edges
+    const connectedNodeIds = new Set<number>()
+    connectedNodeIds.add(data.nodes[0].id) // Always include center node
+    
+    sortedEdges.forEach(edge => {
+      connectedNodeIds.add(edge.source)
+      connectedNodeIds.add(edge.target)
+    })
+    
+    // Filter nodes to only those connected
+    const filteredNodes = data.nodes.filter(node => connectedNodeIds.has(node.id))
+    
+    return {
+      ...data,
+      nodes: filteredNodes,
+      edges: sortedEdges
+    }
+  })() : null
 
   // Set the default selected node to the first node (the main entity)
   useEffect(() => {
-    if (data && data.nodes.length > 0 && !selectedNode) {
-      setSelectedNode(data.nodes[0])
+    if (filteredData && filteredData.nodes.length > 0 && !selectedNode) {
+      setSelectedNode(filteredData.nodes[0])
     }
-  }, [data])
+  }, [filteredData])
 
   if (isLoading) {
     return (
@@ -42,14 +75,36 @@ function VisualPage() {
     )
   }
 
+  const totalEdges = data?.edges.length || 0
+  const displayedEdges = filteredData?.edges.length || 0
+
   return (
     <div className="h-[calc(100vh-4rem)] bg-background text-foreground flex overflow-hidden">
       {/* Split screen layout - 70/30 split */}
-      <div className="w-[70%] p-6 flex items-center justify-center">
+      <div className="w-[70%] p-6 flex items-center justify-center relative">
+        {/* Filter toggle button */}
+        {totalEdges > 50 && (
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-3 bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg px-4 py-2">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{displayedEdges}</span> of {totalEdges} holdings
+            </div>
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                showAll
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80 text-foreground'
+              }`}
+            >
+              {showAll ? 'Show Top 25' : 'Show All'}
+            </button>
+          </div>
+        )}
+        
         <div className="w-full h-full">
           <NetworkGraph
-            nodes={data.nodes}
-            edges={data.edges}
+            nodes={filteredData?.nodes || []}
+            edges={filteredData?.edges || []}
             onNodeSelect={setSelectedNode}
             selectedNodeId={selectedNode?.id}
           />
@@ -58,11 +113,11 @@ function VisualPage() {
 
       {/* Right 30% - Node Dashboard */}
       <div className="w-[30%] h-full">
-        {selectedNode ? (
+        {selectedNode && filteredData ? (
           <NodeDashboard
             node={selectedNode}
-            allNodes={data.nodes}
-            allEdges={data.edges}
+            allNodes={filteredData.nodes}
+            allEdges={filteredData.edges}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">

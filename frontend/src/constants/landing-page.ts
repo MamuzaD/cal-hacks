@@ -13,7 +13,7 @@ export const landingPage = {
     searchPlaceholder:
       "Try 'Pfizer', 'Tesla', 'BlackRock', or a politician's name…",
     searchButton: 'Explore',
-    exampleSearches: ['Pfizer', 'Nancy Pelosi', 'Apple', 'JPMorgan'],
+    exampleSearches: ['Pfizer', 'Ro Khanna', 'Google', 'JPMorgan'],
     connectionNodes: [
       { label: 'Lawmakers', icon: 'Users' },
       { label: 'Bills & Votes', icon: 'FileText' },
