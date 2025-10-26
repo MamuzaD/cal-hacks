@@ -25,7 +25,8 @@ function ShowcasePage() {
 
           {/* Description */}
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We couldn't find any matching records in our database. Try searching with a different term or explore our example searches.
+            We couldn't find any matching records in our database. Try searching
+            with a different term or explore our example searches.
           </p>
 
           {/* Action buttons */}
@@ -38,11 +39,7 @@ function ShowcasePage() {
                 Back to Search
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="glass"
-            >
+            <Button size="lg" variant="outline" className="glass">
               Browse Examples
             </Button>
           </div>
@@ -73,4 +70,3 @@ function ShowcasePage() {
     </div>
   )
 }
-

@@ -14,38 +14,44 @@ function VisualPage() {
   const { data, isLoading, isError } = useVisualData(id, type)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [showAll, setShowAll] = useState(false)
-  
+
   // Filter to top holdings by default (top 25 by value)
-  const filteredData = data ? (() => {
-    if (showAll || data.edges.length <= 50) {
-      return data
-    }
-    
-    // Sort edges by holding_value (descending) and take top 25
-    const sortedEdges = [...data.edges].sort((a, b) => {
-      const valA = a.holding_value || 0
-      const valB = b.holding_value || 0
-      return valB - valA
-    }).slice(0, 25)
-    
-    // Get node IDs that are connected by these edges
-    const connectedNodeIds = new Set<number>()
-    connectedNodeIds.add(data.nodes[0].id) // Always include center node
-    
-    sortedEdges.forEach(edge => {
-      connectedNodeIds.add(edge.source)
-      connectedNodeIds.add(edge.target)
-    })
-    
-    // Filter nodes to only those connected
-    const filteredNodes = data.nodes.filter(node => connectedNodeIds.has(node.id))
-    
-    return {
-      ...data,
-      nodes: filteredNodes,
-      edges: sortedEdges
-    }
-  })() : null
+  const filteredData = data
+    ? (() => {
+        if (showAll || data.edges.length <= 50) {
+          return data
+        }
+
+        // Sort edges by holding_value (descending) and take top 25
+        const sortedEdges = [...data.edges]
+          .sort((a, b) => {
+            const valA = a.holding_value || 0
+            const valB = b.holding_value || 0
+            return valB - valA
+          })
+          .slice(0, 25)
+
+        // Get node IDs that are connected by these edges
+        const connectedNodeIds = new Set<number>()
+        connectedNodeIds.add(data.nodes[0].id) // Always include center node
+
+        sortedEdges.forEach((edge) => {
+          connectedNodeIds.add(edge.source)
+          connectedNodeIds.add(edge.target)
+        })
+
+        // Filter nodes to only those connected
+        const filteredNodes = data.nodes.filter((node) =>
+          connectedNodeIds.has(node.id),
+        )
+
+        return {
+          ...data,
+          nodes: filteredNodes,
+          edges: sortedEdges,
+        }
+      })()
+    : null
 
   // Set the default selected node to the first node (the main entity)
   useEffect(() => {
@@ -69,7 +75,9 @@ function VisualPage() {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">No data found for {type}/{id}</p>
+          <p className="text-muted-foreground">
+            No data found for {type}/{id}
+          </p>
         </div>
       </div>
     )
@@ -77,6 +85,7 @@ function VisualPage() {
 
   const totalEdges = data?.edges.length || 0
   const displayedEdges = filteredData?.edges.length || 0
+  const filterKey = showAll ? 'all' : 'filtered'
 
   return (
     <div className="h-[calc(100vh-4rem)] bg-background text-foreground flex overflow-hidden">
@@ -86,7 +95,11 @@ function VisualPage() {
         {totalEdges > 50 && (
           <div className="absolute top-4 left-4 z-30 flex items-center gap-3 bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg px-4 py-2">
             <div className="text-sm text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{displayedEdges}</span> of {totalEdges} holdings
+              Showing{' '}
+              <span className="font-semibold text-foreground">
+                {displayedEdges}
+              </span>{' '}
+              of {totalEdges} holdings
             </div>
             <button
               onClick={() => setShowAll(!showAll)}
@@ -100,9 +113,10 @@ function VisualPage() {
             </button>
           </div>
         )}
-        
+
         <div className="w-full h-full">
           <NetworkGraph
+            key={filterKey}
             nodes={filteredData?.nodes || []}
             edges={filteredData?.edges || []}
             onNodeSelect={setSelectedNode}
@@ -118,6 +132,7 @@ function VisualPage() {
             node={selectedNode}
             allNodes={filteredData.nodes}
             allEdges={filteredData.edges}
+            onNodeSelect={setSelectedNode}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">
@@ -128,4 +143,3 @@ function VisualPage() {
     </div>
   )
 }
-

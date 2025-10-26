@@ -31,7 +31,10 @@ export function NetworkGraph({
 }: NetworkGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
+    SVGSVGElement,
+    unknown
+  > | null>(null)
   const isDarkMode = useDark()
 
   useEffect(() => {
@@ -71,8 +74,12 @@ export function NetworkGraph({
           type: combinedType,
           isBidirectional: true,
           originalTypes: types,
-          holding_value: (edge.holding_value || 0) + (reverseEdge.holding_value || 0),
-          status: edge.status === 'sold' || reverseEdge.status === 'sold' ? 'sold' : edge.status,
+          holding_value:
+            (edge.holding_value || 0) + (reverseEdge.holding_value || 0),
+          status:
+            edge.status === 'sold' || reverseEdge.status === 'sold'
+              ? 'sold'
+              : edge.status,
         })
 
         processedPairs.add(pairKey)
@@ -84,39 +91,45 @@ export function NetworkGraph({
 
     // Calculate dynamic force parameters based on node count
     const nodeCount = nodes.length
-    
+
     // Calculate total value for each node based on connected edges
     const nodeValues = new Map<number, number>()
     nodes.forEach((node) => {
       let totalValue = 0
       processedEdges.forEach((edge) => {
-        const sourceId = typeof edge.source === 'number' ? edge.source : (edge.source as any).id
-        const targetId = typeof edge.target === 'number' ? edge.target : (edge.target as any).id
-        
+        const sourceId =
+          typeof edge.source === 'number'
+            ? edge.source
+            : (edge.source as any).id
+        const targetId =
+          typeof edge.target === 'number'
+            ? edge.target
+            : (edge.target as any).id
+
         if (sourceId === node.id || targetId === node.id) {
           totalValue += edge.holding_value || 0
         }
       })
       nodeValues.set(node.id, totalValue)
     })
-    
+
     // Find min and max values for scaling
-    const values = Array.from(nodeValues.values()).filter(v => v > 0)
+    const values = Array.from(nodeValues.values()).filter((v) => v > 0)
     const minValue = Math.min(...values)
     const maxValue = Math.max(...values)
-    
+
     // Scale node size based on value (logarithmic scale for better distribution)
     // Adjust size ranges based on node count for better visibility in large graphs
     const centerNodeId = nodes[0]?.id // First node is the center
-    
+
     const getNodeRadius = (nodeId: number): number => {
       const value = nodeValues.get(nodeId) || 0
-      
+
       // Adaptive size ranges based on graph size
       let minRadius: number
       let maxRadius: number
       let centerRadius: number
-      
+
       if (nodeCount > 500) {
         // Very large graphs: smaller nodes
         minRadius = 3
@@ -143,31 +156,31 @@ export function NetworkGraph({
         maxRadius = 40
         centerRadius = 50
       }
-      
+
       // Center node is always the largest
       if (nodeId === centerNodeId) {
         return centerRadius
       }
-      
+
       if (value === 0) return minRadius - 2 // minimum size for nodes with no value
       if (minValue === maxValue) return (minRadius + maxRadius) / 2
-      
+
       // Log scale: smaller differences at high values, larger at low values
       const logMin = Math.log(minValue)
       const logMax = Math.log(maxValue)
       const logValue = Math.log(value)
-      
+
       const normalizedValue = (logValue - logMin) / (logMax - logMin)
       return minRadius + normalizedValue * (maxRadius - minRadius)
     }
-    
+
     // Adaptive force parameters for different graph sizes
     let linkDistance: number
     let chargeStrength: number
     let linkStrength: number
     let centerStrength: number
     let collisionBuffer: number
-    
+
     if (nodeCount > 500) {
       // Very large graphs (500-1000+ nodes) - optimize for speed
       linkDistance = 20
@@ -211,7 +224,7 @@ export function NetworkGraph({
       centerStrength = 0.1
       collisionBuffer = 15
     }
-    
+
     // Scale collision radius based on node sizes
     const collisionRadius = (d: any) => {
       const radius = getNodeRadius(d.id)
@@ -231,12 +244,26 @@ export function NetworkGraph({
           .iterations(nodeCount > 500 ? 1 : 2), // Fewer iterations for large graphs
       )
       .force('charge', d3.forceManyBody().strength(chargeStrength))
-      .force('center', d3.forceCenter(width / 2, height / 2).strength(centerStrength))
-      .force('collision', d3.forceCollide().radius(collisionRadius).iterations(1)) // Single collision iteration
+      .force(
+        'center',
+        d3.forceCenter(width / 2, height / 2).strength(centerStrength),
+      )
+      .force(
+        'collision',
+        d3.forceCollide().radius(collisionRadius).iterations(1),
+      ) // Single collision iteration
       .force('x', d3.forceX(width / 2).strength(centerStrength))
       .force('y', d3.forceY(height / 2).strength(centerStrength))
       // Much faster convergence for large graphs
-      .alphaDecay(nodeCount > 500 ? 0.1 : nodeCount > 200 ? 0.05 : nodeCount > 100 ? 0.03 : 0.02)
+      .alphaDecay(
+        nodeCount > 500
+          ? 0.1
+          : nodeCount > 200
+            ? 0.05
+            : nodeCount > 100
+              ? 0.03
+              : 0.02,
+      )
       .velocityDecay(nodeCount > 500 ? 0.7 : nodeCount > 200 ? 0.5 : 0.3) // More friction for large graphs
       .alphaTarget(nodeCount > 500 ? 0 : 0) // Stop immediately when settled for large graphs
 
@@ -246,7 +273,7 @@ export function NetworkGraph({
       if (type === 'stock-holding' && status === 'sold') {
         return '#06b6d4' // cyan-500 for sold positions (profit/loss realized)
       }
-      
+
       // Type-based colors (for active holdings and other types)
       if (type === 'stock-holding') return '#22c55e' // green-500 for active holdings
       if (type === 'campaign-contribution') return '#ef4444' // red-500
@@ -283,7 +310,7 @@ export function NetworkGraph({
     let fontSize: number
     let showLabels: boolean
     let strokeWidth: number
-    
+
     if (nodeCount > 500) {
       fontSize = 6
       showLabels = false // Hide labels for very large graphs to reduce clutter
@@ -305,18 +332,24 @@ export function NetworkGraph({
       showLabels = true
       strokeWidth = 2
     }
-    
+
     // No arrows needed - just lines connecting nodes
 
     // Helper function to calculate edge width based on value (scaled for graph size)
     const getEdgeWidth = (edge: ProcessedEdge): number => {
       if (!edge.holding_value) {
         // Default width scales with graph size
-        return nodeCount > 500 ? 0.5 : nodeCount > 200 ? 0.8 : nodeCount > 100 ? 1 : 2
+        return nodeCount > 500
+          ? 0.5
+          : nodeCount > 200
+            ? 0.8
+            : nodeCount > 100
+              ? 1
+              : 2
       }
-      
+
       const value = Math.abs(edge.holding_value)
-      
+
       // Scale width ranges based on graph size
       let widthMultiplier: number
       if (nodeCount > 500) {
@@ -328,7 +361,7 @@ export function NetworkGraph({
       } else {
         widthMultiplier = 1.0
       }
-      
+
       // Use logarithmic scale for better visual distribution
       let baseWidth: number
       if (value < 1000) baseWidth = 1
@@ -341,7 +374,7 @@ export function NetworkGraph({
       else if (value < 10000000) baseWidth = 8
       else if (value < 50000000) baseWidth = 9
       else baseWidth = 10
-      
+
       return Math.max(0.5, baseWidth * widthMultiplier)
     }
 
@@ -356,24 +389,25 @@ export function NetworkGraph({
 
     // Create a group for zoom/pan (must be created first)
     const g = svg.append('g')
-    
+
     // Add zoom behavior for large graphs
     if (nodeCount >= 100) {
-      const zoom = d3.zoom<SVGSVGElement, unknown>()
+      const zoom = d3
+        .zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.1, 10]) // Allow 10% to 1000% zoom
         .on('zoom', (event) => {
           g.attr('transform', event.transform)
         })
-      
+
       svg.call(zoom)
       zoomBehaviorRef.current = zoom
-      
+
       // Set initial zoom - no transformation needed, start at normal view
       // The force simulation will center the graph naturally
     } else {
       zoomBehaviorRef.current = null
     }
-    
+
     // Create links inside the zoom group
     const link = g
       .append('g')
@@ -396,7 +430,7 @@ export function NetworkGraph({
       })
       // Optimize rendering for large graphs
       .style('shape-rendering', nodeCount > 500 ? 'optimizeSpeed' : 'auto')
-    
+
     // Create nodes inside the zoom group (conditionally enable dragging)
     const node = g
       .append('g')
@@ -405,7 +439,7 @@ export function NetworkGraph({
       .data(nodes)
       .enter()
       .append('g')
-    
+
     // Only enable dragging for smaller graphs
     if (nodeCount < 100) {
       node.call(drag(simulation))
@@ -442,14 +476,14 @@ export function NetworkGraph({
 
     // Add labels with offset based on node size (conditionally for large graphs)
     if (showLabels) {
-    node
-      .append('text')
-      .text((d) => d.name)
-      .attr('font-size', fontSize)
+      node
+        .append('text')
+        .text((d) => d.name)
+        .attr('font-size', fontSize)
         .attr('dx', (d) => getNodeRadius(d.id) + 3)
         .attr('dy', 4)
-      .attr('fill', isDarkMode ? '#fff' : '#000')
-      .attr('pointer-events', 'none')
+        .attr('fill', isDarkMode ? '#fff' : '#000')
+        .attr('pointer-events', 'none')
     }
 
     // Add click handler to nodes
@@ -463,16 +497,16 @@ export function NetworkGraph({
     // Update positions on simulation tick with throttling for large graphs
     let lastUpdate = 0
     const throttleDelay = nodeCount > 500 ? 50 : nodeCount > 200 ? 30 : 0 // ms between updates
-    
+
     simulation.on('tick', () => {
       const now = Date.now()
-      
+
       // Throttle updates for large graphs
       if (throttleDelay > 0 && now - lastUpdate < throttleDelay) {
         return
       }
       lastUpdate = now
-      
+
       link
         .attr('x1', (d: any) => d.source.x)
         .attr('y1', (d: any) => d.source.y)
@@ -541,7 +575,7 @@ export function NetworkGraph({
 
     d3.select(svgRef.current)
       .selectAll('.selection-ring')
-      .attr('opacity', function(d: any) {
+      .attr('opacity', function (d: any) {
         return d.id === selectedNodeId ? 1 : 0
       })
   }, [selectedNodeId])
@@ -563,7 +597,10 @@ export function NetworkGraph({
             onClick={() => {
               if (svgRef.current && zoomBehaviorRef.current) {
                 const svg = d3.select(svgRef.current)
-                svg.transition().duration(300).call(zoomBehaviorRef.current.scaleBy, 1.3)
+                svg
+                  .transition()
+                  .duration(300)
+                  .call(zoomBehaviorRef.current.scaleBy, 1.3)
               }
             }}
             className="bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg p-2 hover:bg-primary/10 transition-colors"
@@ -589,7 +626,10 @@ export function NetworkGraph({
             onClick={() => {
               if (svgRef.current && zoomBehaviorRef.current) {
                 const svg = d3.select(svgRef.current)
-                svg.transition().duration(300).call(zoomBehaviorRef.current.scaleBy, 0.7)
+                svg
+                  .transition()
+                  .duration(300)
+                  .call(zoomBehaviorRef.current.scaleBy, 0.7)
               }
             }}
             className="bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg p-2 hover:bg-primary/10 transition-colors"
@@ -615,7 +655,10 @@ export function NetworkGraph({
               if (svgRef.current && zoomBehaviorRef.current) {
                 const svg = d3.select(svgRef.current)
                 // Reset to identity (no zoom, no pan)
-                svg.transition().duration(500).call(zoomBehaviorRef.current.transform, d3.zoomIdentity)
+                svg
+                  .transition()
+                  .duration(500)
+                  .call(zoomBehaviorRef.current.transform, d3.zoomIdentity)
               }
             }}
             className="bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg p-2 hover:bg-primary/10 transition-colors"
@@ -643,7 +686,8 @@ export function NetworkGraph({
       {/* Navigation hint for large graphs */}
       {nodes.length >= 100 && (
         <div className="absolute bottom-4 left-4 z-20 bg-background/90 backdrop-blur-sm border border-primary/20 rounded-lg px-3 py-2 text-xs text-muted-foreground">
-          <span className="font-medium">💡 Tip:</span> Scroll to zoom, drag to pan
+          <span className="font-medium">💡 Tip:</span> Scroll to zoom, drag to
+          pan
         </div>
       )}
 

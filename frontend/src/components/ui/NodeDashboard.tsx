@@ -7,12 +7,14 @@ interface NodeDashboardProps {
   node: Node
   allNodes: Node[]
   allEdges: Edge[]
+  onNodeSelect?: (node: Node) => void
 }
 
 export function NodeDashboard({
   node,
   allNodes,
   allEdges,
+  onNodeSelect,
 }: NodeDashboardProps) {
   const navigate = useNavigate()
 
@@ -21,8 +23,14 @@ export function NodeDashboard({
   const companyQuery = useCompany(node.type === 'company' ? node.id : undefined)
 
   const isLoadingDetails = personQuery.isLoading || companyQuery.isLoading
-  const person = node.type === 'person' ? (personQuery.data as Partial<Node> | undefined) : undefined
-  const company = node.type === 'company' ? (companyQuery.data as Partial<Node> | undefined) : undefined
+  const person =
+    node.type === 'person'
+      ? (personQuery.data as Partial<Node> | undefined)
+      : undefined
+  const company =
+    node.type === 'company'
+      ? (companyQuery.data as Partial<Node> | undefined)
+      : undefined
 
   // Helper to get ID from edge source/target (handles both number and D3 object format)
   const getEdgeId = (value: any): number => {
@@ -65,7 +73,7 @@ export function NodeDashboard({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value)
-    
+
     // Add profit indicator for sold positions
     if (isSold) {
       return `${formatted} profit`
@@ -98,7 +106,7 @@ export function NodeDashboard({
     if (type === 'stock-holding' && status === 'sold') {
       return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' // Cyan for sold
     }
-    
+
     // Type-based colors (for active holdings and other types)
     if (type === 'stock-holding')
       return 'bg-green-500/20 text-green-400 border-green-500/30'
@@ -131,13 +139,13 @@ export function NodeDashboard({
 
     return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
   }
-  
+
   const getStatusLabel = (status?: string, type?: string) => {
     // Only show special label for sold stock holdings
     if (type === 'stock-holding' && status === 'sold') return 'Sold Position'
     return type
   }
-  
+
   const getStatusTextColor = (status?: string, type?: string) => {
     // Only special color for sold stock holdings
     if (type === 'stock-holding' && status === 'sold') {
@@ -147,13 +155,25 @@ export function NodeDashboard({
   }
 
   // Prefer API details for sidebar, fallback to graph node
-  const displayName = (person?.name ?? company?.name) ?? node.name
-  const displayPosition = node.type === 'person' ? (person?.position ?? node.position) : undefined
-  const displayState = node.type === 'person' ? (person?.state ?? node.state) : undefined
-  const displayParty = node.type === 'person' ? (person?.party_affiliation ?? node.party_affiliation) : undefined
-  const displayNetWorth = node.type === 'person' ? (person?.estimated_net_worth ?? node.estimated_net_worth) : undefined
-  const displayLastTrade = node.type === 'person' ? (person?.last_trade_date ?? node.last_trade_date) : undefined
-  const displayTicker = node.type === 'company' ? (company?.ticker ?? node.ticker) : undefined
+  const displayName = person?.name ?? company?.name ?? node.name
+  const displayPosition =
+    node.type === 'person' ? (person?.position ?? node.position) : undefined
+  const displayState =
+    node.type === 'person' ? (person?.state ?? node.state) : undefined
+  const displayParty =
+    node.type === 'person'
+      ? (person?.party_affiliation ?? node.party_affiliation)
+      : undefined
+  const displayNetWorth =
+    node.type === 'person'
+      ? (person?.estimated_net_worth ?? node.estimated_net_worth)
+      : undefined
+  const displayLastTrade =
+    node.type === 'person'
+      ? (person?.last_trade_date ?? node.last_trade_date)
+      : undefined
+  const displayTicker =
+    node.type === 'company' ? (company?.ticker ?? node.ticker) : undefined
 
   return (
     <div className="h-full flex flex-col p-4 bg-background border-l border-primary/20 overflow-hidden">
@@ -168,38 +188,52 @@ export function NodeDashboard({
           >
             {node.type}
           </span>
-          
+
           {/* Person-specific fields */}
           {node.type === 'person' && (
             <div className="space-y-1 text-sm mt-2">
-              {isLoadingDetails && <div className="text-xs text-muted-foreground">Loading details…</div>}
+              {isLoadingDetails && (
+                <div className="text-xs text-muted-foreground">
+                  Loading details…
+                </div>
+              )}
               {displayPosition && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">Position:</span>
+                  <span className="text-muted-foreground font-medium">
+                    Position:
+                  </span>
                   <span>{displayPosition}</span>
                 </div>
               )}
               {displayState && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">State:</span>
+                  <span className="text-muted-foreground font-medium">
+                    State:
+                  </span>
                   <span>{displayState}</span>
                 </div>
               )}
               {displayParty && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">Party:</span>
+                  <span className="text-muted-foreground font-medium">
+                    Party:
+                  </span>
                   <span>{displayParty}</span>
                 </div>
               )}
               {typeof displayNetWorth === 'number' && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">Net Worth:</span>
+                  <span className="text-muted-foreground font-medium">
+                    Net Worth:
+                  </span>
                   <span>{formatCurrency(displayNetWorth)}</span>
                 </div>
               )}
               {displayLastTrade && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">Last Trade:</span>
+                  <span className="text-muted-foreground font-medium">
+                    Last Trade:
+                  </span>
                   <span>{formatDate(displayLastTrade)}</span>
                 </div>
               )}
@@ -209,11 +243,19 @@ export function NodeDashboard({
           {/* Company-specific fields */}
           {node.type === 'company' && (
             <div className="space-y-1 text-sm mt-2">
-              {isLoadingDetails && <div className="text-xs text-muted-foreground">Loading details…</div>}
+              {isLoadingDetails && (
+                <div className="text-xs text-muted-foreground">
+                  Loading details…
+                </div>
+              )}
               {displayTicker && (
                 <div className="flex gap-2">
-                  <span className="text-muted-foreground font-medium">Ticker:</span>
-                  <span className="font-mono font-semibold">{displayTicker}</span>
+                  <span className="text-muted-foreground font-medium">
+                    Ticker:
+                  </span>
+                  <span className="font-mono font-semibold">
+                    {displayTicker}
+                  </span>
                 </div>
               )}
             </div>
@@ -233,33 +275,48 @@ export function NodeDashboard({
               Outgoing ({outgoingEdges.length})
             </h3>
             <div className="space-y-2">
-              {outgoingEdges.map((edge, idx) => (
-                <div
-                  key={idx}
-                  className="glass rounded-lg p-2.5 hover:border-primary/30 transition-all"
-                >
-                  <div className="flex items-start gap-2 mb-1.5">
-                    <span className="text-sm text-muted-foreground mt-0.5">
-                      →
-                    </span>
-                    <span className="font-medium text-sm wrap-break-word flex-1 line-clamp-2">
-                      {getNodeLabel(getEdgeId(edge.target))}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
-                    >
-                      {getStatusLabel(edge.status, edge.type)}
-                    </span>
-                    {edge.holding_value && (
-                      <span className={`text-xs ${getStatusTextColor(edge.status)}`}>
-                        {formatCurrency(edge.holding_value, edge.status === 'sold')}
+              {outgoingEdges.map((edge, idx) => {
+                const targetNode = allNodes.find(
+                  (n) => n.id === getEdgeId(edge.target),
+                )
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      if (targetNode && onNodeSelect) {
+                        onNodeSelect(targetNode)
+                      }
+                    }}
+                    className="glass rounded-lg p-2.5 hover:border-primary/30 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-start gap-2 mb-1.5">
+                      <span className="text-sm text-muted-foreground mt-0.5">
+                        →
                       </span>
-                    )}
+                      <span className="font-medium text-sm wrap-break-word flex-1 line-clamp-2">
+                        {getNodeLabel(getEdgeId(edge.target))}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
+                      >
+                        {getStatusLabel(edge.status, edge.type)}
+                      </span>
+                      {edge.holding_value && (
+                        <span
+                          className={`text-xs ${getStatusTextColor(edge.status)}`}
+                        >
+                          {formatCurrency(
+                            edge.holding_value,
+                            edge.status === 'sold',
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
@@ -271,33 +328,48 @@ export function NodeDashboard({
               Incoming ({incomingEdges.length})
             </h3>
             <div className="space-y-2">
-              {incomingEdges.map((edge, idx) => (
-                <div
-                  key={idx}
-                  className="glass rounded-lg p-2.5 hover:border-primary/30 transition-all"
-                >
-                  <div className="flex items-start gap-2 mb-1.5">
-                    <span className="font-medium text-sm wrap-break-word flex-1 line-clamp-2">
-                      {getNodeLabel(getEdgeId(edge.source))}
-                    </span>
-                    <span className="text-sm text-muted-foreground mt-0.5">
-                      →
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
-                    >
-                      {getStatusLabel(edge.status, edge.type)}
-                    </span>
-                    {edge.holding_value && (
-                      <span className={`text-xs ${getStatusTextColor(edge.status)}`}>
-                        {formatCurrency(edge.holding_value, edge.status === 'sold')}
+              {incomingEdges.map((edge, idx) => {
+                const sourceNode = allNodes.find(
+                  (n) => n.id === getEdgeId(edge.source),
+                )
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      if (sourceNode && onNodeSelect) {
+                        onNodeSelect(sourceNode)
+                      }
+                    }}
+                    className="glass rounded-lg p-2.5 hover:border-primary/30 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-start gap-2 mb-1.5">
+                      <span className="font-medium text-sm wrap-break-word flex-1 line-clamp-2">
+                        {getNodeLabel(getEdgeId(edge.source))}
                       </span>
-                    )}
+                      <span className="text-sm text-muted-foreground mt-0.5">
+                        →
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded border ${getEdgeTypeColor(edge.type, edge.status)} w-fit`}
+                      >
+                        {getStatusLabel(edge.status, edge.type)}
+                      </span>
+                      {edge.holding_value && (
+                        <span
+                          className={`text-xs ${getStatusTextColor(edge.status)}`}
+                        >
+                          {formatCurrency(
+                            edge.holding_value,
+                            edge.status === 'sold',
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
