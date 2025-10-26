@@ -1,7 +1,6 @@
 import { Network } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { Button } from '~/components/ui/button'
-import { brand, landingPage } from '~/constants'
+import { brand } from '~/constants'
 import { SearchBar } from '~/components/ui/search'
 import { ThemeToggle } from '~/components/ui/theme-toggle'
 
@@ -22,20 +21,6 @@ export function Header() {
       </Link>
 
       <div className="flex items-center gap-4 flex-shrink-0">
-        <Link to="/dashboard">
-          <Button
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors hidden sm:flex"
-          >
-            Dashboard
-          </Button>
-        </Link>
-        <Button
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors hidden sm:flex"
-        >
-          {landingPage.nav.about}
-        </Button>
         <ThemeToggle />
         <div className="hidden sm:block">
           <SearchBar placeholder="Search" variant="compact" />
