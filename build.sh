@@ -3,6 +3,10 @@ set -e
 
 echo "🔨 Building frontend..."
 cd frontend
+
+# Enable corepack for pnpm support
+corepack enable && corepack prepare pnpm@latest --activate
+
 pnpm install
 pnpm run build
 cd ..
