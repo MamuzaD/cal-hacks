@@ -1,6 +1,6 @@
 import { useLocation } from '@tanstack/react-router'
 import { Header } from './header'
-import { Footer } from '../landing/Footer'
+import { Footer } from './footer'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -20,9 +20,7 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       {/* Footer - Hidden on visual paths */}
       {!isVisualPath && (
@@ -33,4 +31,3 @@ export function Layout({ children }: LayoutProps) {
     </div>
   )
 }
-

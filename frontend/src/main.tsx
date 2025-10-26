@@ -10,7 +10,6 @@ import { routeTree } from './routeTree.gen'
 import './index.css'
 
 // Create a new router instance
-
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext()
 const router = createRouter({
   routeTree,

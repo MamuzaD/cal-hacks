@@ -10,18 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VisualIdRouteImport } from './routes/visual.$id'
+import { Route as VisualTypeIdRouteImport } from './routes/visual.$type.$id'
 
 const ShowcaseRoute = ShowcaseRouteImport.update({
   id: '/showcase',
   path: '/showcase',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,44 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VisualIdRoute = VisualIdRouteImport.update({
-  id: '/visual/$id',
-  path: '/visual/$id',
+const VisualTypeIdRoute = VisualTypeIdRouteImport.update({
+  id: '/visual/$type/$id',
+  path: '/visual/$type/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
-  '/visual/$id': typeof VisualIdRoute
+  '/visual/$type/$id': typeof VisualTypeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
-  '/visual/$id': typeof VisualIdRoute
+  '/visual/$type/$id': typeof VisualTypeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
-  '/visual/$id': typeof VisualIdRoute
+  '/visual/$type/$id': typeof VisualTypeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/showcase' | '/visual/$id'
+  fullPaths: '/' | '/showcase' | '/visual/$type/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/showcase' | '/visual/$id'
-  id: '__root__' | '/' | '/dashboard' | '/showcase' | '/visual/$id'
+  to: '/' | '/showcase' | '/visual/$type/$id'
+  id: '__root__' | '/' | '/showcase' | '/visual/$type/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   ShowcaseRoute: typeof ShowcaseRoute
-  VisualIdRoute: typeof VisualIdRoute
+  VisualTypeIdRoute: typeof VisualTypeIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,13 +68,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -92,11 +75,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/visual/$id': {
-      id: '/visual/$id'
-      path: '/visual/$id'
-      fullPath: '/visual/$id'
-      preLoaderRoute: typeof VisualIdRouteImport
+    '/visual/$type/$id': {
+      id: '/visual/$type/$id'
+      path: '/visual/$type/$id'
+      fullPath: '/visual/$type/$id'
+      preLoaderRoute: typeof VisualTypeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -104,9 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   ShowcaseRoute: ShowcaseRoute,
-  VisualIdRoute: VisualIdRoute,
+  VisualTypeIdRoute: VisualTypeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
