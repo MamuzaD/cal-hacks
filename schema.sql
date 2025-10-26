@@ -23,63 +23,84 @@ BEGIN;
 
 -- Create the tables
 CREATE TABLE IF NOT EXISTS politicians (
-  id BIGSERIAL PRIMARY KEY,
-  name                   VARCHAR(255) NOT NULL,
-  position               VARCHAR(100) NOT NULL,
-  state                  VARCHAR(100) NOT NULL,
-  party_affiliation      VARCHAR(50)  NOT NULL,
-  start_date_of_position DATE         NOT NULL,
-  -- Helps dedupe on migration; adjust if you prefer a different natural key
-  CONSTRAINT uq_politician_identity UNIQUE (name, position, state, party_affiliation, start_date_of_position)
+  id                   BIGSERIAL PRIMARY KEY,
+  name                 VARCHAR(255) NOT NULL,
+  position             VARCHAR(100) NOT NULL,
+  state                VARCHAR(100) NOT NULL,
+  party_affiliation    VARCHAR(50)  NOT NULL,
+  estimated_net_worth  NUMERIC(18,2) NOT NULL DEFAULT 0,
+  last_trade_date      DATE,
+
+  CONSTRAINT uq_politician_identity UNIQUE (name, position, state, party_affiliation)
 );
+
+CREATE TABLE IF NOT EXISTS companies (
+  id      BIGSERIAL PRIMARY KEY,
+  name    VARCHAR(255) NOT NULL,
+  ticker  VARCHAR(10)  NOT NULL,
+  CONSTRAINT uq_companies_ticker UNIQUE (ticker),
+  CONSTRAINT uq_companies_name   UNIQUE (name)
+);
+CREATE INDEX IF NOT EXISTS idx_companies_ticker ON companies (ticker);
 
 CREATE TABLE IF NOT EXISTS holdings (
-  id BIGSERIAL PRIMARY KEY,
+  id             BIGSERIAL PRIMARY KEY,
   politician_id  BIGINT NOT NULL REFERENCES politicians(id) ON DELETE CASCADE,
-  company        VARCHAR(255) NOT NULL,
-  ticker         VARCHAR(10),
-  total_ownership NUMERIC(15,2)
-);
+  company_id     BIGINT NOT NULL REFERENCES companies(id)    ON DELETE CASCADE,
+  holding_value  NUMERIC(18,2) NOT NULL DEFAULT 0,
 
--- Helpful indexes
-CREATE INDEX IF NOT EXISTS idx_politicians_name   ON politicians (name);
-CREATE INDEX IF NOT EXISTS idx_holdings_ticker    ON holdings (ticker);
-CREATE INDEX IF NOT EXISTS idx_holdings_company   ON holdings (company);
-CREATE INDEX IF NOT EXISTS idx_holdings_pol_id    ON holdings (politician_id);
+  CONSTRAINT uq_holdings_unique UNIQUE (politician_id, company_id)
+);
+CREATE INDEX IF NOT EXISTS idx_holdings_pol ON holdings (politician_id);
+CREATE INDEX IF NOT EXISTS idx_holdings_co  ON holdings (company_id);
 
 -- Mock data
-INSERT INTO politicians (name, position, state, party_affiliation, start_date_of_position)
+INSERT INTO politicians (name, position, state, party_affiliation, estimated_net_worth, last_trade_date)
 VALUES
-  ('Elaine Wu', 'Representative', 'Washington', 'Democratic', '2020-01-03'),
-  ('Olivia Kim', 'Representative', 'Oregon', 'Democratic', '2023-01-03'),
-  ('Robert Jenkins', 'Representative', 'Virginia', 'Republican', '2022-01-03'),
-  ('Maria Torres', 'Delegate', 'Guam', 'Democratic', '2019-01-03'),
-  ('Jonah Kaleopa', 'Delegate', 'American Samoa', 'Republican', '2021-01-03'),
-  ('David Morales', 'Speaker of the House', 'Texas', 'Republican', '2023-01-07')
-ON CONFLICT (name, position, state, party_affiliation, start_date_of_position)
-DO NOTHING;
+  ('Elaine Wu',       'Representative',       'Washington',      'Democratic',  3200000, '2024-12-20'),
+  ('Olivia Kim',      'Representative',       'Oregon',          'Democratic',  5100000, '2025-01-15'),
+  ('Robert Jenkins',  'Representative',       'Virginia',        'Republican',  4500000, '2025-02-10'),
+  ('Maria Torres',    'Delegate',             'Guam',            'Democratic',  1800000, '2024-11-05'),
+  ('Jonah Kaleopa',   'Delegate',             'American Samoa',  'Republican',  1200000, '2025-03-01'),
+  ('David Morales',   'Speaker of the House', 'Texas',           'Republican',  8700000, '2025-04-22');
 
-INSERT INTO holdings (politician_id, company, ticker, total_ownership)
-SELECT p.id, h.company, h.ticker, h.total_ownership
-FROM (
+INSERT INTO companies (name, ticker)
+VALUES
+  ('MediTech Holdings Ltd.',      'MDTH'),
+  ('Vertex Mobility Systems',     'VMSX'),
+  ('NorthStar Defense Systems',   'NSDS'),
+  ('Pacific Digital Ventures',    'PDVG'),
+  ('Island Maritime Group',       'IMGN'),
+  ('Sunterra Infrastructure LLC', 'SUNX');
+
+WITH v(p_name, p_position, p_state, p_party, c_ticker, holding_value) AS (
   VALUES
-    -- Original holdings
-    ('Elaine Wu', 'MediTech Holdings Ltd.', 'MDTH', 230000),
-    ('Olivia Kim', 'Vertex Mobility Systems', 'VMSX', 4380000),
-    ('Robert Jenkins', 'NorthStar Defense Systems', 'NSDS', 3780000),
-    ('Maria Torres', 'Pacific Digital Ventures', 'PDVG', 950000),
-    ('Jonah Kaleopa', 'Island Maritime Group', 'IMGN', 600000),
-    ('David Morales', 'Sunterra Infrastructure LLC', 'SUNX', 6450000),
+    -- Main edges
+    ('Elaine Wu',      'Representative',       'Washington',      'Democratic', 'MDTH',  230000),
+    ('Olivia Kim',     'Representative',       'Oregon',          'Democratic', 'VMSX',  4380000),
+    ('Robert Jenkins', 'Representative',       'Virginia',        'Republican', 'NSDS',  3780000),
+    ('Maria Torres',   'Delegate',             'Guam',            'Democratic', 'PDVG',   950000),
+    ('Jonah Kaleopa',  'Delegate',             'American Samoa',  'Republican', 'IMGN',   600000),
+    ('David Morales',  'Speaker of the House', 'Texas',           'Republican', 'SUNX',  6450000),
 
-    -- Additional holdings for graph/web testing
-    ('Elaine Wu', 'Vertex Mobility Systems', 'VMSX', 150000),     -- shared company with Olivia Kim
-    ('Olivia Kim', 'MediTech Holdings Ltd.', 'MDTH', 90000),      -- shared company with Elaine Wu
-    ('Robert Jenkins', 'Sunterra Infrastructure LLC', 'SUNX', 275000), -- shared with David Morales
-    ('Maria Torres', 'Island Maritime Group', 'IMGN', 120000),    -- shared with Jonah Kaleopa
-    ('David Morales', 'NorthStar Defense Systems', 'NSDS', 310000), -- shared with Robert Jenkins
-    ('Jonah Kaleopa', 'Pacific Digital Ventures', 'PDVG', 85000)  -- shared with Maria Torres
-) AS h(name, company, ticker, total_ownership)
-JOIN politicians p ON p.name = h.name;
+    -- Cross-links for graph testing
+    ('Elaine Wu',      'Representative',       'Washington',      'Democratic', 'VMSX',   150000),
+    ('Olivia Kim',     'Representative',       'Oregon',          'Democratic', 'MDTH',    90000),
+    ('Robert Jenkins', 'Representative',       'Virginia',        'Republican', 'SUNX',   275000),
+    ('Maria Torres',   'Delegate',             'Guam',            'Democratic', 'IMGN',   120000),
+    ('David Morales',  'Speaker of the House', 'Texas',           'Republican', 'NSDS',   310000),
+    ('Jonah Kaleopa',  'Delegate',             'American Samoa',  'Republican', 'PDVG',    85000)
+)
+INSERT INTO holdings (politician_id, company_id, holding_value)
+SELECT p.id, c.id, v.holding_value
+FROM v
+JOIN politicians p
+  ON  p.name = v.p_name
+  AND p.position = v.p_position
+  AND p.state = v.p_state
+  AND p.party_affiliation = v.p_party
+JOIN companies c
+  ON c.ticker = v.c_ticker;
 
 COMMIT;
 
@@ -101,6 +122,7 @@ GRANT CONNECT ON DATABASE railway TO testuser;
 
 GRANT USAGE ON SCHEMA public TO testuser;
 GRANT SELECT ON TABLE politicians TO testuser;
+GRANT SELECT ON TABLE companies TO testuser;
 GRANT SELECT ON TABLE holdings TO testuser;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO testuser;
