@@ -1,5 +1,5 @@
 export const brand = {
-  name: 'Web Weyes',
+  name: 'Weyes',
   description:
     'An AI map of connections between people, organizations, and actions',
   copyright: '© 2025 Web Weyes. All rights reserved.',
