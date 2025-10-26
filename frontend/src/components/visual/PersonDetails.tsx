@@ -1,5 +1,5 @@
 import { formatCurrency, formatDate } from '~/lib/node-dashboard-utils'
-import type { Node } from '~/lib/mockData'
+import type { Node } from '~/lib/types'
 
 interface PersonDetailsProps {
   person?: Partial<Node>

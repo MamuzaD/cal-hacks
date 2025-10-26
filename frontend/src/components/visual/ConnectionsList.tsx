@@ -1,4 +1,4 @@
-import type { Edge, Node } from '~/lib/mockData'
+import type { Edge, Node } from '~/lib/types'
 import { ConnectionItem } from './ConnectionItem'
 import { getEdgeId } from '~/lib/node-dashboard-hooks'
 

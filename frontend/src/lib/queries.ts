@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { GraphData, Node } from '~/lib/mockData'
+import type { GraphData, Node } from '~/lib/types'
 import { queryKeys } from '~/lib/queryKeys'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'

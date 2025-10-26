@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import type { Node, Edge } from '~/lib/mockData'
+import type { Node, Edge } from '~/lib/types'
 import { usePerson, useCompany } from '~/lib/queries'
 import { useNodeEdges } from '~/lib/node-dashboard-hooks'
 import { NodeHeader } from './NodeHeader'

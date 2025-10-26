@@ -1,4 +1,4 @@
-import type { Edge, Node } from '~/lib/mockData'
+import type { Edge, Node } from '~/lib/types'
 import {
   formatCurrency,
   getEdgeTypeColor,

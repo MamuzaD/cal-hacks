@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
-import type { Node as NodeType, Edge as EdgeType } from '~/lib/mockData'
+import type { Node as NodeType, Edge as EdgeType } from '~/lib/types'
 import { useDark } from '~/lib/dark-mode'
 
 interface NetworkGraphProps {

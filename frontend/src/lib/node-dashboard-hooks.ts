@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Node, Edge } from '~/lib/mockData'
+import type { Node, Edge } from '~/lib/types'
 
 // Helper to get ID from edge source/target (handles both number and D3 object format)
 export const getEdgeId = (value: any): number => {

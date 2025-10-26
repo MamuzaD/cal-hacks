@@ -1,4 +1,4 @@
-import type { Node } from '~/lib/mockData'
+import type { Node } from '~/lib/types'
 
 interface CompanyDetailsProps {
   company?: Partial<Node>

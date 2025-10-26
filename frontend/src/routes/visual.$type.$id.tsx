@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { NetworkGraph } from '~/components/ui/NetworkGraph'
 import { NodeDashboard } from '~/components/visual/NodeDashboard'
 import { useVisualData } from '~/lib/queries'
-import type { Node } from '~/lib/mockData'
+import type { Node } from '~/lib/types'
 
 export const Route = createFileRoute('/visual/$type/$id')({
   component: VisualPage,
