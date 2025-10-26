@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
 import type { Node as NodeType, Edge as EdgeType } from '~/lib/mockData'
+import { useDark } from '~/lib/dark-mode'
 
 interface NetworkGraphProps {
   nodes: NodeType[]
@@ -25,6 +26,7 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
+  const isDarkMode = useDark()
 
   useEffect(() => {
     if (!svgRef.current || !containerRef.current) return
@@ -185,12 +187,8 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       .attr('font-size', 12)
       .attr('dx', 20)
       .attr('dy', 5)
-      .attr('fill', () => {
-        // Check if we're in dark mode by checking body class or use a default
-        const isDark = document.documentElement.classList.contains('dark')
-        return isDark ? '#fff' : '#000'
-      })
-      .style('pointer-events', 'none')
+      .attr('fill', isDarkMode ? '#fff' : '#000')
+      .attr('pointer-events', 'none')
 
     // Add click handler to nodes
     node.on('click', (event, d) => {
@@ -253,7 +251,16 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       simulation.stop()
       d3.select(svgRef.current).selectAll('*').remove()
     }
-  }, [nodes, edges, onNodeSelect, selectedNodeId])
+  }, [nodes, edges, onNodeSelect, selectedNodeId, isDarkMode])
+
+  // Update label colors when theme changes
+  useEffect(() => {
+    if (!svgRef.current) return
+    
+    d3.select(svgRef.current)
+      .selectAll('text')
+      .attr('fill', isDarkMode ? '#fff' : '#000')
+  }, [isDarkMode])
 
   return (
     <div ref={containerRef} className="relative w-full h-full rounded-lg overflow-hidden border border-primary/20">
@@ -263,8 +270,7 @@ export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: Net
       {/* Glow effect for selected node */}
       <div 
         ref={glowRef}
-        className="absolute -translate-x-1/2 -translate-y-1/2 w-[50px] h-[50px] rounded-full bg-amber-400 opacity-0 blur-[10px] pointer-events-none transition-opacity duration-300 z-0"
-        style={{ left: '0px', top: '0px' }}
+        className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-[50px] h-[50px] rounded-full bg-amber-400 opacity-0 blur-[10px] pointer-events-none transition-opacity duration-300 z-0"
       />
       
       {/* SVG Graph */}
