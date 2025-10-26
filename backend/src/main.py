@@ -378,7 +378,7 @@ if os.path.exists(frontend_dist):
     try:
         app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="static-assets")
         logger.info("Mounted /assets directory")
-    except Exception as e:
+    except (RuntimeError, OSError) as e:
         logger.warning(f"Could not mount /assets: {e}")
     
     # Catch-all route: serve the React app's index.html for client-side routing
