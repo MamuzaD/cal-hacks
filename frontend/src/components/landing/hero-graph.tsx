@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
+import { useDark } from '~/lib/dark-mode'
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string
@@ -24,16 +25,17 @@ export function HeroGraph() {
   const svgRef = useRef<SVGSVGElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
+  const isDarkMode = useDark()
 
   // Check if we should render based on screen size
   useEffect(() => {
     const checkScreenSize = () => {
       setShouldRender(window.innerWidth >= 768) // md breakpoint is 768px
     }
-    
+
     checkScreenSize()
     window.addEventListener('resize', checkScreenSize)
-    
+
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
@@ -258,9 +260,14 @@ export function HeroGraph() {
       .attr('dy', (d) => d.size + 12)
       .attr('font-size', '8px')
       .attr('font-weight', '500')
-      .attr('fill', '#E8EAED')
+      .attr('fill', isDarkMode ? '#E8EAED' : '#1a1a1a')
       .attr('pointer-events', 'none')
-      .style('filter', 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))')
+      .style(
+        'filter',
+        isDarkMode
+          ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))'
+          : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))',
+      )
       .text((d) => d.label)
 
     // Add drag behavior
@@ -334,7 +341,9 @@ export function HeroGraph() {
           .attr('r', d.size)
           .attr('stroke-width', 1.5)
 
-        link.style('stroke-opacity', 0.4).style('stroke-width', (l) => l.strength * 2)
+        link
+          .style('stroke-opacity', 0.4)
+          .style('stroke-width', (l) => l.strength * 2)
       })
 
     // Animate particles using requestAnimationFrame
@@ -386,11 +395,26 @@ export function HeroGraph() {
     }
   }, [shouldRender])
 
+  // Update label colors when theme changes
+  useEffect(() => {
+    if (!svgRef.current || !shouldRender) return
+
+    d3.select(svgRef.current)
+      .selectAll('text.node-label')
+      .attr('fill', isDarkMode ? '#E8EAED' : '#1a1a1a')
+      .style(
+        'filter',
+        isDarkMode
+          ? 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.8))'
+          : 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))',
+      )
+  }, [isDarkMode, shouldRender])
+
   if (!shouldRender) return null
 
   return (
-    <div 
-      className="relative w-full h-[400px] overflow-visible flex items-center justify-center" 
+    <div
+      className="relative w-full h-[400px] overflow-visible flex items-center justify-center"
       onWheel={(e) => e.preventDefault()}
     >
       {/* Gradient background - centered behind the SVG graph */}
