@@ -1,5 +1,5 @@
 from typing import Union, List, Optional
-from fastapi import FastAPI, Query, HTTPException, Depends
+from fastapi import FastAPI, Query, HTTPException, Depends, APIRouter
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -36,6 +36,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Create API router with /api prefix
+api_router = APIRouter(prefix="/api")
 
 async def get_db():
     async with db_pool.acquire() as connection:
@@ -81,9 +84,10 @@ class GeneralSearchResponse(BaseModel):
     reasoning: str
     result: Union[PersonSearchResponse, CompanySearchResponse]
 
+# Root route for API docs
 @app.get("/")
-def get_root():
-    return {"message": "Welcome to Web Weyes!"}
+async def api_root():
+    return {"message": "Web Weyes API", "docs": "/docs", "api": "/api"}
 
 # Separate functions for database operations
 async def search_company_in_db(query: str, db: asyncpg.Connection) -> CompanySearchResponse:
@@ -301,7 +305,7 @@ async def classify_search_term(search_term: str) -> dict:
         }
 
 # General search endpoint
-@app.get("/search", response_model=GeneralSearchResponse)
+@api_router.get("/search", response_model=GeneralSearchResponse)
 async def general_search(
     q: str = Query(..., description="Search term (person or company)"),
     db: asyncpg.Connection = Depends(get_db)
@@ -333,7 +337,7 @@ async def general_search(
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 # Specific endpoint for company search (calls the separate function)
-@app.get("/search/company", response_model=CompanySearchResponse)
+@api_router.get("/search/company", response_model=CompanySearchResponse)
 async def company_search(
     q: str = Query(..., description="Company name or ticker to search for"),
     db: asyncpg.Connection = Depends(get_db)
@@ -345,7 +349,7 @@ async def company_search(
     return await search_company_in_db(q, db)
 
 # Specific endpoint for person search (calls the separate function)
-@app.get("/search/person", response_model=PersonSearchResponse)
+@api_router.get("/search/person", response_model=PersonSearchResponse)
 async def person_search(
     q: str = Query(..., description="Politician name to search for"),
     db: asyncpg.Connection = Depends(get_db)
@@ -355,6 +359,10 @@ async def person_search(
     Returns all companies they have ownership stakes in.
     """
     return await search_person_in_db(q, db)
+
+# Mount the API router
+app.include_router(api_router)
+logger.info("Mounted API router at /api")
 
 # Mount static files from the frontend build directory
 # This serves the React app's static assets (JS, CSS, images, etc.)
@@ -383,7 +391,7 @@ if os.path.exists(frontend_dist):
     async def serve_frontend(full_path: str):
         """
         Catch-all route to serve the React app for client-side routing.
-        This only matches if no API route (like /search) has matched.
+        This only matches if no API route (like /api/search) has matched.
         """
         # Check if it's a static file request (has file extension)
         if "." in os.path.basename(full_path):
