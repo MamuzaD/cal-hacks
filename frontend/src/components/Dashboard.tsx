@@ -6,7 +6,7 @@ import { TrendingUp, Users, Building2, DollarSign } from 'lucide-react';
 // API functions
 const fetchDashboardStats = async () => {
   // You'll replace these with actual API calls to your backend
-  const response = await fetch('http://localhost:8000/api/dashboard/stats');
+  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/dashboard/stats`);
   if (!response.ok) throw new Error('Failed to fetch stats');
   return response.json();
 };
