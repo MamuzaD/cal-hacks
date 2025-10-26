@@ -8,9 +8,13 @@ import json
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import anthropic
+import logging
 
+logger = logging.getLogger(__name__)
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:testpassword@localhost:5432/railway")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 db_pool = None
 
@@ -224,8 +228,9 @@ async def search_person_in_db(query: str, db: asyncpg.Connection) -> PersonSearc
             company_holdings=company_holdings
         )
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except asyncpg.PostgresError as e:
+        logger.exception("DB error in person_search")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 async def classify_search_term(search_term: str) -> dict:
     """
@@ -313,8 +318,9 @@ async def general_search(
             result=result
         )
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
+    except asyncpg.PostgresError as e:
+        logger.exception("DB error in person_search")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 # Specific endpoint for company search (calls the separate function)
 @app.get("/search/company", response_model=CompanySearchResponse)
