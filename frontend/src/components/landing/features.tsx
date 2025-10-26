@@ -17,9 +17,9 @@ function FeatureCard({
   return (
     <div className="relative group">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
-      <div className="relative glass-strong rounded-3xl p-8 border border-white/5 hover:border-white/10 transition-all duration-300 group-hover:scale-[1.02]">
+      <div className="relative glass-strong rounded-3xl p-8 border border-black/5 hover:border-black/10 dark:border-white/5 dark:hover:border-white/10 transition-all duration-300 group-hover:scale-[1.02]">
         <div
-          className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 ${colorClass === 'bg-primary' ? 'bg-primary/20 border border-primary/30 glow-cyan' : colorClass === 'bg-secondary' ? 'bg-secondary/20 border border-secondary/30 glow-magenta' : 'bg-white/5 border border-white/10'}`}
+          className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 ${colorClass === 'bg-primary' ? 'bg-primary/20 border border-primary/30 glow-cyan' : colorClass === 'bg-secondary' ? 'bg-secondary/20 border border-secondary/30 glow-magenta' : 'bg-accent/20 border border-accent/30'}`}
         >
           <div
             className={
@@ -27,7 +27,7 @@ function FeatureCard({
                 ? 'text-primary'
                 : colorClass === 'bg-secondary'
                   ? 'text-secondary'
-                  : 'text-muted-foreground'
+                  : 'text-accent'
             }
           >
             {icon}
@@ -52,14 +52,14 @@ export function FeaturesSection() {
   const { features } = landingPage
 
   return (
-    <div className="relative py-32 overflow-hidden">
-      {/* Gradient background that blends with hero section */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
-      
+    <div className="relative py-64 overflow-hidden">
       {/* Subtle animated orbs for continuity */}
-      <div className="absolute top-0 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/8 blur-[120px] animate-float" />
-      <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full bg-secondary/6 blur-[100px] animate-float" style={{ animationDelay: '1.5s' }} />
-      
+      <div className="absolute top-1/2 right-1/4 w-[250px] h-[250px] rounded-full bg-accent/50 blur-[120px] animate-float" />
+      <div
+        className="absolute bottom-0 left-1/3 w-[200px] h-[200px] rounded-full bg-secondary/6 blur-[100px] animate-float"
+        style={{ animationDelay: '1.5s' }}
+      />
+
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px]" />
 
@@ -83,7 +83,7 @@ export function FeaturesSection() {
         <div className="grid md:grid-cols-3 gap-8">
           {features.cards.map((card, index) => {
             const Icon = iconMap[card.icon]
-            const colors = ['bg-primary', 'bg-secondary', 'bg-muted']
+            const colors = ['bg-primary', 'bg-secondary', 'bg-accent']
             return (
               <FeatureCard
                 key={card.title}

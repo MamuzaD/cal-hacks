@@ -6,10 +6,10 @@ export const landingPage = {
       line3: 'Instantly',
     },
     quickStartLabel: 'Quick start →',
-    previewLabel: "DEMO PREVIEW",
+    previewLabel: 'DEMO PREVIEW',
     subtitle:
-      'An AI map of connections between companies and politicians—follow the money, see who lobbies whom, and where stock holdings may align with policy.',
-    subtitleHighlight: 'funding, lobbying, and holdings',
+      'Uncover hidden connections between corporations and politicians through AI-powered analysis of',
+    subtitleHighlight: 'campaign finance, lobbying activities, and stock holdings',
     searchPlaceholder:
       "Try 'Pfizer', 'Tesla', 'BlackRock', or a politician's name…",
     searchButton: 'Explore',
@@ -24,7 +24,10 @@ export const landingPage = {
   features: {
     title: 'See the Network',
     subtitle: 'Built on',
-    subtitleHighlight: 'verifiable filings and disclosures',
+    titleAccent: '+',
+
+    titleSuffix: 'Conspiracy Map',
+    subtitleHighlight: 'verifiable public records and disclosures',
     cards: [
       {
         title: 'Visual Clarity',
@@ -46,36 +49,13 @@ export const landingPage = {
       },
     ],
   },
-  useCases: {
-    title: 'Who It’s For',
-    cards: [
-      {
-        title: 'Journalists',
-        description:
-          'Trace influence: connect donors, lobbyists, votes, and personal holdings in minutes.',
-        icon: 'FileText',
-      },
-      {
-        title: 'Researchers & Students',
-        description:
-          'Study corporate–government relationships with transparent, cited data.',
-        icon: 'Users',
-      },
-      {
-        title: 'Civic Watchdogs',
-        description:
-          'Monitor potential conflicts of interest and spotlight patterns as they emerge.',
-        icon: 'Eye',
-      },
-    ],
-  },
   cta: {
     title: {
       line1: 'Follow the Money,',
       line2: 'See the Influence',
     },
     subtitle:
-      'Explore the connections between companies and politicians—funding, lobbying, and stock holdings—in one interactive map.',
+      'Discover the intricate web of influence between corporations and politicians through comprehensive analysis of campaign finance, lobbying activities, and stock holdings.',
     primaryButton: 'Get Started Free',
     secondaryButton: 'Watch Demo',
   },

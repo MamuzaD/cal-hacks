@@ -6,9 +6,6 @@ export function CTASection() {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* Enhanced gradient background with multiple layers */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/98 to-background" />
-
       {/* Animated radial gradient background */}
       <div
         aria-hidden="true"
@@ -22,19 +19,13 @@ export function CTASection() {
         </div>
       </div>
 
-      {/* Subtle grid pattern overlay */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"
-      />
-
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative group">
           {/* Enhanced outer glow effect */}
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-[2.5rem] blur-xl opacity-30 group-hover:opacity-60 transition-opacity duration-500" />
 
           {/* Main CTA card with enhanced styling */}
-          <div className="relative glass-strong rounded-[2rem] p-8 md:p-12 lg:p-16 text-center border border-white/10 backdrop-blur-xl hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
+          <div className="relative glass-strong rounded-[2rem] p-8 md:p-12 lg:p-16 text-center border border-black/10 dark:border-white/10 backdrop-blur-xl hover:border-black/20 dark:hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
             {/* Enhanced title with better typography */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-8 leading-tight tracking-tight">
               <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-shimmer inline-block shimmer-bg-200">

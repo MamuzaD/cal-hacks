@@ -1,3 +1,3 @@
-# cal-hacks
+# CalHacks
 
 ## graph idea

@@ -1,13 +1,13 @@
 import { Network } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Button } from '~/components/ui/button'
 import { brand, landingPage } from '~/constants'
-import { SearchBar } from '~/components/ui/SearchBar'
+import { SearchBar } from '~/components/ui/search'
 import { ThemeToggle } from '~/components/ui/theme-toggle'
-import { Link } from '@tanstack/react-router'
 
 export function Header() {
   return (
-    <nav className="flex items-center justify-between mb-12 gap-4">
+    <nav className="flex items-center justify-between py-4 gap-4">
       <Link
         to="/"
         className="flex items-center space-x-3 group cursor-pointer flex-shrink-0"
