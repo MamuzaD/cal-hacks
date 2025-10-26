@@ -5,22 +5,30 @@ set -e
 
 echo "🚀 Starting deployment process..."
 
-# Build the frontend
-echo "📦 Building frontend..."
-cd frontend
-
-# Check if pnpm is available, otherwise use npm
-if command -v pnpm &> /dev/null; then
-    echo "Using pnpm..."
-    pnpm install
-    pnpm build
-else
-    echo "Using npm..."
-    npm install
-    npm run build
+# Check if Node.js is available (should be from build phase)
+if ! command -v node &> /dev/null; then
+    echo "⚠️  Node.js not found in PATH"
+    echo "Available node: $(which node || echo 'not found')"
+    echo "PATH: $PATH"
 fi
 
-cd ..
+# Verify frontend is built (should have been done in build phase)
+if [ ! -d "frontend/dist" ]; then
+    echo "⚠️  Frontend not built, building now..."
+    cd frontend
+    
+    # Install pnpm if not available
+    if ! command -v pnpm &> /dev/null; then
+        echo "Installing pnpm..."
+        npm install -g pnpm
+    fi
+    
+    pnpm install
+    pnpm run build
+    cd ..
+fi
+
+echo "✅ Frontend build verified"
 
 # Start the backend (which will serve the frontend)
 echo "🔧 Starting backend server..."

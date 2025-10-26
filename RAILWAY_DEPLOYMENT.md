@@ -36,6 +36,33 @@ cal-hacks/
 
 ## Deployment to Railway
 
+### Railway Service Configuration
+
+**IMPORTANT**: This project uses a single Railway service approach because the backend serves the frontend static files. If you've configured two separate services (frontend and backend), you need to adjust the configuration:
+
+#### Single Service (Recommended)
+
+Configure ONE service with:
+- **Root Directory**: `/` (repository root)
+- **Start Command**: `bash start.sh`
+- Uses the `railway.toml` in the repo root
+
+#### Two Services (Alternative)
+
+If you insist on two separate services, configure:
+
+**Frontend Service:**
+- **Root Directory**: `/` (repository root)
+- **Watch Path**: `frontend/**`
+- Note: This service only builds artifacts, doesn't run
+
+**Backend Service:**
+- **Root Directory**: `/` (repository root)  
+- **Watch Path**: `backend/**`
+- **Start Command**: `bash start.sh`
+
+However, **this won't work properly** because the frontend and backend need to be in the same filesystem for the backend to serve the frontend's dist folder.
+
 ### Option 1: Deploy from GitHub
 
 1. Push this repository to GitHub
