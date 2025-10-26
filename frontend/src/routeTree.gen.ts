@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VisualIdRouteImport } from './routes/visual.$id'
 
 const ShowcaseRoute = ShowcaseRouteImport.update({
   id: '/showcase',
   path: '/showcase',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,30 +37,34 @@ const VisualIdRoute = VisualIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
   '/visual/$id': typeof VisualIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
   '/visual/$id': typeof VisualIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/showcase': typeof ShowcaseRoute
   '/visual/$id': typeof VisualIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/showcase' | '/visual/$id'
+  fullPaths: '/' | '/dashboard' | '/showcase' | '/visual/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/showcase' | '/visual/$id'
-  id: '__root__' | '/' | '/showcase' | '/visual/$id'
+  to: '/' | '/dashboard' | '/showcase' | '/visual/$id'
+  id: '__root__' | '/' | '/dashboard' | '/showcase' | '/visual/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
   ShowcaseRoute: typeof ShowcaseRoute
   VisualIdRoute: typeof VisualIdRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/showcase'
       fullPath: '/showcase'
       preLoaderRoute: typeof ShowcaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
   ShowcaseRoute: ShowcaseRoute,
   VisualIdRoute: VisualIdRoute,
 }
