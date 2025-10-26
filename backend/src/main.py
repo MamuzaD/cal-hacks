@@ -280,14 +280,22 @@ async def classify_search_term(search_term: str) -> dict:
         )
         
         result = json.loads(response.content[0].text)
+        
+        # Validate required fields
+        if not all(key in result for key in ["type", "confidence", "reasoning"]):
+            raise ValueError("Invalid response structure from Claude")
+        if result["type"] not in ["person", "company"]:
+            raise ValueError(f"Invalid type from Claude: {result['type']}")
         return result
         
-    except Exception as e:
+    except (json.JSONDecodeError, ValueError, anthropic.APIError) as e:
+        logger.warning(f"Claude classification failed: {e}")
+
         # Fallback if Claude fails
         return {
             "type": "company",
             "confidence": 0.3,
-            "reasoning": f"Claude classification failed ({str(e)}), defaulting to company"
+            "reasoning": "Claude classification unavailable, defaulting to company"
         }
 
 # General search endpoint
@@ -319,7 +327,7 @@ async def general_search(
         )
         
     except asyncpg.PostgresError as e:
-        logger.exception("DB error in person_search")
+        logger.exception("DB error in general_search")
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 # Specific endpoint for company search (calls the separate function)
