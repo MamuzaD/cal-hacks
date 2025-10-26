@@ -1,3 +1,4 @@
+import { useLocation } from '@tanstack/react-router'
 import { Header } from './header'
 import { Footer } from '../landing/Footer'
 
@@ -6,6 +7,9 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const location = useLocation()
+  const isVisualPath = location.pathname.startsWith('/visual/')
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Fixed Header */}
@@ -20,10 +24,12 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-auto">
-        <Footer />
-      </footer>
+      {/* Footer - Hidden on visual paths */}
+      {!isVisualPath && (
+        <footer className="mt-auto">
+          <Footer />
+        </footer>
+      )}
     </div>
   )
 }

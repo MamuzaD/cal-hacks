@@ -5,6 +5,8 @@ import type { Node as NodeType, Edge as EdgeType } from '~/lib/mockData'
 interface NetworkGraphProps {
   nodes: NodeType[]
   edges: EdgeType[]
+  onNodeSelect?: (node: NodeType) => void
+  selectedNodeId?: string
 }
 
 interface SimulationNode extends NodeType {
@@ -14,67 +16,143 @@ interface SimulationNode extends NodeType {
   fy?: number | null
 }
 
-export function NetworkGraph({ nodes, edges }: NetworkGraphProps) {
+interface ProcessedEdge extends EdgeType {
+  isBidirectional?: boolean
+  originalTypes?: string[]
+}
+
+export function NetworkGraph({ nodes, edges, onNodeSelect, selectedNodeId }: NetworkGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const glowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!svgRef.current) return
+    if (!svgRef.current || !containerRef.current) return
 
     // Clear previous content
     d3.select(svgRef.current).selectAll('*').remove()
 
-    const width = 800
-    const height = 600
+    const width = containerRef.current.clientWidth
+    const height = containerRef.current.clientHeight
     const svg = d3.select(svgRef.current).attr('width', width).attr('height', height)
+
+    // Process edges to detect and merge bidirectional relationships
+    const processedEdges: ProcessedEdge[] = []
+    const processedPairs = new Set<string>()
+
+    edges.forEach((edge) => {
+      const pairKey = [edge.source, edge.target].sort().join('-')
+      
+      if (processedPairs.has(pairKey)) return
+
+      // Check if there's a reverse edge
+      const reverseEdge = edges.find(
+        (e) => e.source === edge.target && e.target === edge.source
+      )
+
+      if (reverseEdge) {
+        // Bidirectional edge found - combine types
+        const types = [edge.type, reverseEdge.type].sort()
+        const combinedType = types.join(' + ')
+        
+        processedEdges.push({
+          ...edge,
+          type: combinedType,
+          isBidirectional: true,
+          originalTypes: types,
+          value: (edge.value || 0) + (reverseEdge.value || 0)
+        })
+        
+        processedPairs.add(pairKey)
+      } else {
+        // Unidirectional edge
+        processedEdges.push({ ...edge })
+      }
+    })
 
     // Create simulation
     const simulation = d3
       .forceSimulation(nodes as SimulationNode[])
-      .force('link', d3.forceLink(edges).id((d: any) => d.id).distance(100))
+      .force('link', d3.forceLink(processedEdges).id((d: any) => d.id).distance(100))
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(40))
 
-    // Create markers for arrowheads
-    svg
-      .append('defs')
-      .selectAll('marker')
-      .data(['stock-holding', 'campaign-contribution', 'lobbying', 'investment'])
-      .enter()
-      .append('marker')
-      .attr('id', (d) => `arrow-${d}`)
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 25)
-      .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', (d) => {
-        if (d === 'stock-holding') return '#4ade80'
-        if (d === 'campaign-contribution') return '#f87171'
-        if (d === 'lobbying') return '#facc15'
-        return '#60a5fa'
-      })
+    // Helper function to get edge color
+    const getEdgeColor = (type: string): string => {
+      if (type === 'stock-holding') return '#4ade80' // green
+      if (type === 'campaign-contribution') return '#f87171' // red
+      if (type === 'lobbying') return '#facc15' // yellow
+      if (type === 'investment') return '#60a5fa' // blue
+      
+      // Combined types - blend colors or use distinct colors
+      if (type.includes(' + ')) {
+        if (type.includes('stock-holding') && type.includes('lobbying')) return '#86efac' // light green
+        if (type.includes('stock-holding') && type.includes('campaign-contribution')) return '#fb923c' // orange
+        if (type.includes('lobbying') && type.includes('campaign-contribution')) return '#fcd34d' // gold
+        if (type.includes('stock-holding') && type.includes('investment')) return '#7dd3fc' // sky blue
+        if (type.includes('lobbying') && type.includes('investment')) return '#a78bfa' // purple
+        if (type.includes('campaign-contribution') && type.includes('investment')) return '#f472b6' // pink
+        return '#c084fc' // default purple for other combinations
+      }
+      
+      return '#60a5fa' // default blue
+    }
+
+    // Create defs for markers
+    const defs = svg.append('defs')
+
+    // Get all unique edge types including combined ones
+    const allEdgeTypes = Array.from(new Set(processedEdges.map((e) => e.type)))
+
+    // Create markers for arrowheads (both start and end)
+    allEdgeTypes.forEach((edgeType) => {
+      const color = getEdgeColor(edgeType)
+      
+      // End marker (normal arrow)
+      defs
+        .append('marker')
+        .attr('id', `arrow-end-${edgeType.replace(/\s+/g, '-')}`)
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 25)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', color)
+
+      // Start marker (reverse arrow for bidirectional)
+      defs
+        .append('marker')
+        .attr('id', `arrow-start-${edgeType.replace(/\s+/g, '-')}`)
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', -15)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M10,-5L0,0L10,5')
+        .attr('fill', color)
+    })
 
     // Create links
     const link = svg
       .append('g')
       .attr('class', 'links')
       .selectAll('line')
-      .data(edges)
+      .data(processedEdges)
       .enter()
       .append('line')
       .attr('stroke-width', 2)
-      .attr('stroke', (d) => {
-        if (d.type === 'stock-holding') return '#4ade80'
-        if (d.type === 'campaign-contribution') return '#f87171'
-        if (d.type === 'lobbying') return '#facc15'
-        return '#60a5fa'
-      })
+      .attr('stroke', (d: ProcessedEdge) => getEdgeColor(d.type))
       .attr('opacity', 0.6)
-      .attr('marker-end', (d) => `url(#arrow-${d.type})`)
+      .attr('marker-end', (d: ProcessedEdge) => `url(#arrow-end-${d.type.replace(/\s+/g, '-')})`)
+      .attr('marker-start', (d: ProcessedEdge) => 
+        d.isBidirectional ? `url(#arrow-start-${d.type.replace(/\s+/g, '-')})` : null
+      )
 
     // Create nodes
     const node = svg
@@ -98,6 +176,7 @@ export function NetworkGraph({ nodes, edges }: NetworkGraphProps) {
       })
       .attr('stroke', '#fff')
       .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
 
     // Add labels
     node
@@ -106,8 +185,20 @@ export function NetworkGraph({ nodes, edges }: NetworkGraphProps) {
       .attr('font-size', 12)
       .attr('dx', 20)
       .attr('dy', 5)
-      .attr('fill', '#fff')
+      .attr('fill', () => {
+        // Check if we're in dark mode by checking body class or use a default
+        const isDark = document.documentElement.classList.contains('dark')
+        return isDark ? '#fff' : '#000'
+      })
       .style('pointer-events', 'none')
+
+    // Add click handler to nodes
+    node.on('click', (event, d) => {
+      event.stopPropagation()
+      if (onNodeSelect) {
+        onNodeSelect(d as NodeType)
+      }
+    })
 
     // Update positions on simulation tick
     simulation.on('tick', () => {
@@ -118,6 +209,18 @@ export function NetworkGraph({ nodes, edges }: NetworkGraphProps) {
         .attr('y2', (d: any) => d.target.y)
 
       node.attr('transform', (d: any) => `translate(${d.x},${d.y})`)
+
+      // Update glow position for selected node
+      if (glowRef.current && selectedNodeId) {
+        const selectedNodeData = nodes.find((n) => n.id === selectedNodeId) as SimulationNode
+        if (selectedNodeData && selectedNodeData.x !== undefined && selectedNodeData.y !== undefined) {
+          glowRef.current.style.left = `${selectedNodeData.x}px`
+          glowRef.current.style.top = `${selectedNodeData.y}px`
+          glowRef.current.style.opacity = '1'
+        }
+      } else if (glowRef.current) {
+        glowRef.current.style.opacity = '0'
+      }
     })
 
     function drag(simulation: any) {
@@ -150,11 +253,22 @@ export function NetworkGraph({ nodes, edges }: NetworkGraphProps) {
       simulation.stop()
       d3.select(svgRef.current).selectAll('*').remove()
     }
-  }, [nodes, edges])
+  }, [nodes, edges, onNodeSelect, selectedNodeId])
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden border border-primary/20 bg-black/5">
-      <svg ref={svgRef} className="w-full h-full" />
+    <div ref={containerRef} className="relative w-full h-full rounded-lg overflow-hidden border border-primary/20">
+      {/* Gradient background - centered behind the SVG graph */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[875px] h-[700px] rounded-full bg-primary opacity-30 dark:opacity-19 blur-[110px] pointer-events-none" />
+      
+      {/* Glow effect for selected node */}
+      <div 
+        ref={glowRef}
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-[50px] h-[50px] rounded-full bg-amber-400 opacity-0 blur-[10px] pointer-events-none transition-opacity duration-300 z-0"
+        style={{ left: '0px', top: '0px' }}
+      />
+      
+      {/* SVG Graph */}
+      <svg ref={svgRef} className="relative z-10 w-full h-full transition-opacity duration-1000 opacity-100" />
     </div>
   )
 }

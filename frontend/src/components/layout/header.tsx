@@ -22,6 +22,14 @@ export function Header() {
       </Link>
 
       <div className="flex items-center gap-4 flex-shrink-0">
+        <Link to="/dashboard">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors hidden sm:flex"
+          >
+            Dashboard
+          </Button>
+        </Link>
         <Button
           variant="ghost"
           className="text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors hidden sm:flex"
