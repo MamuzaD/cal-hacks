@@ -19,7 +19,7 @@ function VisualPage() {
     if (data && data.nodes.length > 0 && !selectedNode) {
       setSelectedNode(data.nodes[0])
     }
-  }, [data, selectedNode])
+  }, [data])
 
   if (isLoading) {
     return (
