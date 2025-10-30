@@ -1,4 +1,4 @@
-import { CTASection, FeaturesSection, HeroSection } from '~/components/landing'
+import { FeaturesSection, HeroSection } from '~/components/landing'
 
 export default function LandingPage() {
   return (
@@ -21,7 +21,7 @@ export default function LandingPage() {
       </div>
 
       <FeaturesSection />
-      <CTASection />
+      {/* <CTASection /> */}
     </div>
   )
 }
