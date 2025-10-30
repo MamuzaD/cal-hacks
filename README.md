@@ -1,5 +1,10 @@
 # Weyes
 
+<div style="display:flex; align-items:center; flex-wrap:wrap;">
+  <img src="https://github.com/user-attachments/assets/9f66c02b-78dd-4390-afe7-e191b2fac435" alt="Screenshot 1" style="height:275px;">
+  <img src="https://github.com/user-attachments/assets/aafa8b9d-46a1-46a3-92b1-47d934c2d64c" alt="Screenshot 2" style="height:275px;">
+</div>
+
 ### Explore the network between politicians, companies, and money
 
 > React + FastAPI app to search entities, visualize connections, and drill into details.
